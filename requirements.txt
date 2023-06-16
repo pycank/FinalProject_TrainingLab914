@@ -1,0 +1,4 @@
+jsonlines
+gdown
+speechbrain
+pandas

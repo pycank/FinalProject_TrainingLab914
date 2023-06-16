@@ -3,7 +3,7 @@ import torch
 from hyperpyyaml import load_hyperpyyaml
 from speechbrain.utils.distributed import run_on_main
 
-from recipes.pretrained import PipelineSLUTask
+from recipes.direct.pretrained import PipelineSLUTask
 
 class EndpointHandler():
     def __init__(self, path=""):
