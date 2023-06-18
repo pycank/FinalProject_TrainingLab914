@@ -1,14 +1,16 @@
 import os
 import gdown
 import shutil
+import sys
+import speechbrain as sb
 from speechbrain.dataio.dataio import read_audio, merge_csvs
 from speechbrain.utils.data_utils import download_file
 from speechbrain.utils.distributed import run_on_main
 import pandas as pd
 from tqdm import tqdm
 import jsonlines
-from preprocessing.stratified_sampling import stratified_sampling
-
+import json
+from hyperpyyaml import load_hyperpyyaml
 
 def prepare_SLURP_2(
     data_folder, save_folder, slu_type, train_splits, skip_prep=False, sampling=None,
@@ -216,3 +218,28 @@ def prepare_SLURP_2(
                     raise Exception(f"Unsupported strategy: {sampling['strategy']} in {sampling}")
     else:
         print("Ignore sampling: not found sampling config")
+
+
+if __name__ == "__main__":
+        # Load hyperparameters file with command-line overrides
+    hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
+
+    overrides = {}
+
+    with open(hparams_file) as fin:
+        hparams = load_hyperpyyaml(fin, overrides)
+        print(json.dumps(hparams, indent=2))
+    
+    from stratified_sampling import stratified_sampling
+
+    run_on_main(
+        prepare_SLURP_2,
+        kwargs={
+            "data_folder": hparams["data_folder"],
+            "save_folder": hparams["output_folder"],
+            "train_splits": hparams["train_splits"],
+            "slu_type": "direct",
+            "skip_prep": hparams["skip_prep"],
+            "sampling": hparams["sampling"]
+        },
+    )
