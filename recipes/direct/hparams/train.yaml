@@ -24,11 +24,28 @@ log_folder: !ref <output_folder>/log
 data_folder: /slurp/audio
 data_folder_rirs: !ref <data_folder>
 train_splits: ["train_synthetic", "train_real"]
-csv_train: !ref <prepared_folder>/train-type=direct-sample=0.2.csv
-csv_valid: !ref <prepared_folder>/devel-type=direct-sample=0.2.csv
-csv_test: !ref <prepared_folder>/test-type=direct-sample=0.2.csv
 tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
 skip_prep: False
+# original csv
+o_csv_train: !ref <prepared_folder>/train-type=direct.csv
+o_csv_valid: !ref <prepared_folder>/devel-type=direct.csv
+o_csv_test: !ref <prepared_folder>/test-type=direct.csv
+
+# Data sampling strategy
+sampling:
+  files:
+    - !ref <o_csv_train>
+    - !ref <o_csv_valid>
+    - !ref <o_csv_test>
+  strategies:
+    stratified_sampling:
+      selection_rate: 0.2
+      by: intent
+
+# Load csv
+csv_train: !ref <prepared_folder>/train-type=direct-sample=0.2.csv
+csv_valid: !ref <prepared_folder>/devel-type=direct-sample=0.2.csv
+csv_test: !ref <prepared_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20
@@ -168,6 +185,7 @@ seq_cost: !name:speechbrain.nnet.losses.nll_loss
 
 # DEFAULT: train_logger: !new:speechbrain.utils.train_logger.FileTrainLogger
 #    save_file: !ref <train_log>
+# Use TensorboardLogger instead of FileTrainLogger
 train_logger: !new:speechbrain.utils.train_logger.TensorboardLogger
   save_dir: !ref <log_folder>
 
