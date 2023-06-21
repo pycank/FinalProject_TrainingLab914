@@ -17,15 +17,15 @@ def prepare_SLURP_2(
     This function prepares the SLURP dataset.
     If the folder does not exist, the zip file will be extracted. If the zip file does not exist, it will be downloaded.
 
-    data_folder : path to SLURP dataset.
+    data_folder: path to SLURP dataset.
     save_folder: path where to save the csv manifest files.
-    slu_type : one of the following:
+    slu_type: one of the following:
 
       "direct":{input=audio, output=semantics}
       "multistage":{input=audio, output=semantics} (using ASR transcripts in the middle)
       "decoupled":{input=transcript, output=semantics} (using ground-truth transcripts)
 
-    train_splits : list of splits to be joined to form train .csv
+    train_splits: list of splits to be joined to form train .csv
     skip_prep: If True, data preparation is skipped.
     """
     if skip_prep:

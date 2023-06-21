@@ -45,6 +45,7 @@ class SLU(sb.Brain):
         # NOTE: AUG HERE!!!!!!!!!!!!!!!!!
         # Add augmentation if specified
         if stage == sb.Stage.TRAIN:
+            # Default: add noise
             if hasattr(self.hparams, "env_corrupt"):
                 wavs_noise = self.hparams.env_corrupt(wavs, wav_lens)
                 wavs = torch.cat([wavs, wavs_noise], dim=0)

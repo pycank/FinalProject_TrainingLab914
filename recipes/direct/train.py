@@ -1,11 +1,9 @@
-import torch
 import sys
 
 from dataio_prepare import dataio_prepare
-from prepare_SLURP import prepare_SLURP_2
+from utils.prepare_SLURP import prepare_SLURP_2
 from pipeline_SLU import SLU
 
-import torch
 from hyperpyyaml import load_hyperpyyaml
 from speechbrain.utils.distributed import run_on_main
 import pandas as pd
