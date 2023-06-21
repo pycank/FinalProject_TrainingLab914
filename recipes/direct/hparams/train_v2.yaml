@@ -6,17 +6,15 @@
 # losses: NLL
 # Training: SLURP
 # Authors:  Loren Lugosch, Mirco Ravanelli 2020
-#
 # Edit:
-#   V1:
-#     - Using tensorboard logger
-#     - Add sampling config
-# Score:
-#   SLU_F1:
-#     V1:
-#       - epoch_20: 0.55
-#       - epoch_40: 0.58
-#       - epoch_58: 0.58
+#   V1: ...
+#   V2:
+#     - batch_size from 16 to 12
+#     - dec.rnn_type: gru to lstm
+#     - dec.attn_type: keyvalue to content
+#     - dec.dropout from 0.0 to 0.15
+#     - add checkpointer.recoverables.train_logger
+#     - slu_enc.lstm: !new:speechbrain.nnet.RNN.QuasiRNN  # from LSTM
 # ############################################################################
 
 # Seed needs to be set at top of yaml, before objects with parameters are made
@@ -60,7 +58,7 @@ csv_test: !ref <prepared_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20
-batch_size: 16
+batch_size: 12  # DEFAULT 16
 lr: 0.0003
 # token_type: unigram # ["unigram", "bpe", "char"]
 sorting: random
@@ -97,7 +95,7 @@ asr_model: !apply:speechbrain.pretrained.EncoderDecoderASR.from_hparams
 
 slu_enc: !new:speechbrain.nnet.containers.Sequential
   input_shape: [null, null, !ref <ASR_encoder_dim>]
-  lstm: !new:speechbrain.nnet.RNN.LSTM
+  lstm: !new:speechbrain.nnet.RNN.QuasiRNN  # DEFAULT LSTM
     input_size: !ref <ASR_encoder_dim>
     bidirectional: True
     hidden_size: !ref <encoder_dim>
@@ -113,13 +111,14 @@ output_emb: !new:speechbrain.nnet.embedding.Embedding
 dec: !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
   enc_dim: !ref <encoder_dim>
   input_size: !ref <emb_size>
-  rnn_type: gru
-  attn_type: keyvalue
+  rnn_type: lstm        # gru
+  attn_type: content    # keyvalue
   hidden_size: !ref <dec_neurons>
   attn_dim: 512
   num_layers: 3
   scaling: 1.0
-  dropout: 0.0
+  dropout: 0.15          # DEFAULT 0.0
+
 
 seq_lin: !new:speechbrain.nnet.linear.Linear
   input_size: !ref <dec_neurons>
@@ -183,7 +182,7 @@ checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
     model: !ref <model>
     scheduler: !ref <lr_annealing>
     counter: !ref <epoch_counter>
-    # ADD
+    train_logger: !ref <train_logger> # v2
 
 augmentation: !new:speechbrain.lobes.augment.TimeDomainSpecAugment
   sample_rate: !ref <sample_rate>

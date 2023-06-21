@@ -1,7 +1,7 @@
 import sys
 
 from dataio_prepare import dataio_prepare
-from utils.prepare_SLURP import prepare_SLURP_2
+from prepare_SLURP import prepare_SLURP_2
 from pipeline_SLU import SLU
 
 from hyperpyyaml import load_hyperpyyaml
