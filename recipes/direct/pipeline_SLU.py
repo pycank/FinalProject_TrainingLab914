@@ -42,7 +42,7 @@ class SLU(sb.Brain):
         wavs, wav_lens = batch.sig
         tokens_bos, tokens_bos_lens = batch.tokens_bos
 
-        # NOTE: AUG HERE!!!!!!!!!!!!!!!!!
+        # NOTE: WAV AUG HERE!!!!!!!!!!!!!!!!!
         # Add augmentation if specified
         if stage == sb.Stage.TRAIN:
             # Default: add noise

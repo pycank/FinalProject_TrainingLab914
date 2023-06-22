@@ -12,6 +12,7 @@ import jsonlines
 import json
 from hyperpyyaml import load_hyperpyyaml
 
+
 def prepare_SLURP_2(
     data_folder, save_folder, slu_type, train_splits, skip_prep=False, sampling=None,
 ):
