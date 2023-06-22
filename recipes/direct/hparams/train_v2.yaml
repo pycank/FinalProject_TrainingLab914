@@ -12,8 +12,8 @@
 #     - batch_size from 16 to 12
 #     - dec.rnn_type: gru to lstm
 #     - dec.attn_type: keyvalue to content
-#     - dec.dropout from 0.0 to 0.15
-#     - add checkpointer.recoverables.train_logger
+#     - dec.dropout from 0.0 to 0.1
+#     - try add checkpointer.recoverables.train_logger !!!ERROR DEPRECATED
 #     - slu_enc.lstm: !new:speechbrain.nnet.RNN.QuasiRNN  # from LSTM
 # ############################################################################
 
@@ -117,7 +117,7 @@ dec: !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
   attn_dim: 512
   num_layers: 3
   scaling: 1.0
-  dropout: 0.15          # DEFAULT 0.0
+  dropout: 0.1          # DEFAULT 0.0
 
 
 seq_lin: !new:speechbrain.nnet.linear.Linear
@@ -182,7 +182,9 @@ checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
     model: !ref <model>
     scheduler: !ref <lr_annealing>
     counter: !ref <epoch_counter>
-    train_logger: !ref <train_logger> # v2
+    # Error: Don't know how to save <class 'speechbrain.utils.train_logger.TensorboardLogger'>.
+    #        Register default hook or add custom hook for this object.
+    # train_logger: !ref <train_logger> # v2
 
 augmentation: !new:speechbrain.lobes.augment.TimeDomainSpecAugment
   sample_rate: !ref <sample_rate>
