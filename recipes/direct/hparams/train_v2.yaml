@@ -58,7 +58,7 @@ csv_test: !ref <prepared_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20
-batch_size: 12  # DEFAULT 16
+batch_size: 16  # DEFAULT 16
 lr: 0.0003
 # token_type: unigram # ["unigram", "bpe", "char"]
 sorting: random
@@ -114,10 +114,10 @@ dec: !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
   rnn_type: lstm        # gru
   attn_type: content    # keyvalue
   hidden_size: !ref <dec_neurons>
-  attn_dim: 512
+  attn_dim: 1024
   num_layers: 3
   scaling: 1.0
-  dropout: 0.0         # DEFAULT 0.0
+  dropout: 0.1         # DEFAULT 0.0
 
 
 seq_lin: !new:speechbrain.nnet.linear.Linear
