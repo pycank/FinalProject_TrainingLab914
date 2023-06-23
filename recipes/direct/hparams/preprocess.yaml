@@ -1,0 +1,27 @@
+working_dir: .
+
+data_folder: !ref <working_dir>/slurp
+output_folder: !ref <working_dir>/results/prepared
+train_splits:
+  - train_synthetic
+  - train_real
+
+skip_prep: False
+
+# output csv files
+csv_train: !ref <output_folder>/train-type=direct.csv
+csv_valid: !ref <output_folder>/devel-type=direct.csv
+csv_test: !ref <output_folder>/test-type=direct.csv
+
+sorting: ramdom
+
+# sampling strategy
+sampling:
+  files:
+    - !ref <csv_train>
+    - !ref <csv_valid>
+    - !ref <csv_test>
+  strategies:
+    stratified_sampling:
+      selection_rate: 0.2
+      by: intent

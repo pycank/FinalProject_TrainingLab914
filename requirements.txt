@@ -1,0 +1,11 @@
+jsonlines~=3.1.0
+gdown~=4.7.1
+speechbrain~=0.5.14
+pandas~=2.0.2
+torch~=2.0.1
+HyperPyYAML~=1.2.1
+tqdm~=4.65.0
+librosa~=0.10.0.post2
+scikit-learn~=1.2.2
+torchaudio~=2.0.2
+numpy~=1.23.5
