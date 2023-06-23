@@ -95,7 +95,7 @@ asr_model: !apply:speechbrain.pretrained.EncoderDecoderASR.from_hparams
 
 slu_enc: !new:speechbrain.nnet.containers.Sequential
   input_shape: [null, null, !ref <ASR_encoder_dim>]
-  lstm: !new:speechbrain.nnet.RNN.SLiGRU  # DEFAULT LSTM
+  lstm: !new:speechbrain.nnet.RNN.LSTM  # DEFAULT LSTM
     input_size: !ref <ASR_encoder_dim>
     bidirectional: True
     hidden_size: !ref <encoder_dim>
