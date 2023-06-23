@@ -55,3 +55,8 @@ def stratified_sampling(
     print(f"  Total: \t{len(X_total)}")
 
     return X_total
+
+
+if __name__ == "__main__":
+    df = pd.read_csv("../datasets/slurp/")
+    # stratified_sampling()

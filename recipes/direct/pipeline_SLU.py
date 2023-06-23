@@ -23,7 +23,7 @@ import ast
 
 # TODO: To config
 show_results_every=100
-tokenizer=None
+# tokenizer=None
 id_to_file={}
 
 # Define training procedure
