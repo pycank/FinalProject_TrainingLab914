@@ -113,7 +113,7 @@ class SLU(sb.Brain):
         ):
             # Decode token terms to words
             predicted_semantics = [
-                tokenizer.decode_ids(utt_seq).split(" ")
+                self.hparams.tokenizer.decode_ids(utt_seq).split(" ")
                 for utt_seq in predicted_tokens
             ]
 
@@ -164,6 +164,8 @@ class SLU(sb.Brain):
             print(" ".join(predicted_semantics[i]).replace("|", ","))
             print(" ".join(target_semantics[i]).replace("|", ","))
             print("")
+            # print one
+            break
         pass
 
     def fit_batch(self, batch):

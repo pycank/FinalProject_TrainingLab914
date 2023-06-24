@@ -11,7 +11,7 @@ from tqdm import tqdm
 import jsonlines
 import json
 from hyperpyyaml import load_hyperpyyaml
-
+from preprocessing.stratified_sampling import stratified_sampling as ss
 
 def prepare_SLURP_2(
     data_folder, save_folder, slu_type, train_splits, skip_prep=False, sampling=None,
@@ -208,7 +208,7 @@ def prepare_SLURP_2(
                         sampled_file_path = path.replace(".csv", f"-sample={cfg['selection_rate']}.csv")
                         print(f"Sampling: {sampled_file_path}")
                         df = pd.read_csv(path)
-                        sampled_df = stratified_sampling(
+                        sampled_df = ss(
                             cfg['selection_rate'],
                             X=df,
                             by=cfg['by']
@@ -231,7 +231,6 @@ if __name__ == "__main__":
         hparams = load_hyperpyyaml(fin, overrides)
         print(json.dumps(hparams, indent=2))
     
-    from stratified_sampling import stratified_sampling
 
     run_on_main(
         prepare_SLURP_2,

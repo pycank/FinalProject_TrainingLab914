@@ -8,15 +8,8 @@
 # Authors:  Loren Lugosch, Mirco Ravanelli 2020
 #
 # Edit:
-#   V1:
-#     - Using tensorboard logger
-#     - Add sampling config
+#   V3: Using TransformerDecoder
 # Score:
-#   SLU_F1:
-#     V1:
-#       - epoch_20: 0.55
-#       - epoch_40: 0.58
-#       - epoch_58: 0.58
 # ############################################################################
 
 # Seed needs to be set at top of yaml, before objects with parameters are made
@@ -111,16 +104,19 @@ output_emb: !new:speechbrain.nnet.embedding.Embedding
   num_embeddings: !ref <output_neurons>
   embedding_dim: !ref <emb_size>
 
-dec: !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
-  enc_dim: !ref <encoder_dim>
-  input_size: !ref <emb_size>
-  rnn_type: gru
-  attn_type: keyvalue
-  hidden_size: !ref <dec_neurons>
-  attn_dim: 512
-  num_layers: 3
-  scaling: 1.0
-  dropout: 0.0
+#dec: !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
+#  enc_dim: !ref <encoder_dim>
+#  input_size: !ref <emb_size>
+#  rnn_type: gru
+#  attn_type: keyvalue
+#  hidden_size: !ref <dec_neurons>
+#  attn_dim: 512
+#  num_layers: 3
+#  scaling: 1.0
+#  dropout: 0.0
+
+dec: !new:speechbrain.lobes.models.transformer.TransformerDecoder
+
 
 seq_lin: !new:speechbrain.nnet.linear.Linear
   input_size: !ref <dec_neurons>

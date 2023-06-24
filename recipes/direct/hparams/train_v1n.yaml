@@ -9,18 +9,14 @@
 #
 # Edit:
 #   V1:
-#     - Using tensorboard logger
-#     - Add sampling config
+#   V1a:
+#     - Without data augmentation
+#     - -> File logger
 # Score:
-#   SLU_F1:
-#     V1:
-#       - epoch_20: 0.55
-#       - epoch_40: 0.58
-#       - epoch_58: 0.58
 # ############################################################################
 
 # Seed needs to be set at top of yaml, before objects with parameters are made
-seed: 1986
+seed: 2006
 __set_seed: !apply:torch.manual_seed [!ref <seed>]
 # ADD: prepared folder from prev step
 working_dir: !PLACEHOLDER
@@ -39,9 +35,9 @@ train_splits: ["train_synthetic", "train_real"]
 tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
 skip_prep: False
 # original csv
-o_csv_train: !ref <prepared_folder>/train-type=direct.csv
-o_csv_valid: !ref <prepared_folder>/devel-type=direct.csv
-o_csv_test: !ref <prepared_folder>/test-type=direct.csv
+o_csv_train: !ref <output_folder>/train-type=direct.csv
+o_csv_valid: !ref <output_folder>/devel-type=direct.csv
+o_csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Data sampling strategy
 sampling:
@@ -55,9 +51,9 @@ sampling:
       by: intent
 
 # Load csv
-csv_train: !ref <prepared_folder>/train-type=direct-sample=0.2.csv
-csv_valid: !ref <prepared_folder>/devel-type=direct-sample=0.2.csv
-csv_test: !ref <prepared_folder>/test-type=direct.csv
+csv_train: !ref <output_folder>/train-type=direct-sample=0.2.csv
+csv_valid: !ref <output_folder>/devel-type=direct-sample=0.2.csv
+csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20

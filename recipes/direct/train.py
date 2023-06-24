@@ -24,10 +24,10 @@ def print_slu_details(slu: SLU):
         return n_params
 
     print("ASR Encoder: ")
-    n_asr_enc_params = show_module_list_parameters(slu_brain.hparams.asr_model.mods)
+    n_asr_enc_params = show_module_list_parameters(slu.hparams.asr_model.mods)
     print("==========")
     print("Trainable:")
-    n_trainable_params = show_module_list_parameters(slu_brain.hparams.modules)
+    n_trainable_params = show_module_list_parameters(slu.hparams.modules)
     print("==========")
     print(f"Pretrained ASR Encoder parameters: {n_asr_enc_params}")
     print(f"Trainable parameters: {n_trainable_params}")
@@ -47,6 +47,17 @@ if __name__ == "__main__":
     with open(hparams_file) as fin:
         hparams = load_hyperpyyaml(fin, overrides)
 
+    # If --distributed_launch then
+    # create ddp_group with the right communication protocol
+    sb.utils.distributed.ddp_init_group(run_opts)
+
+    # Create experiment directory
+    sb.create_experiment_directory(
+        experiment_directory=hparams["output_folder"],
+        hyperparams_to_save=hparams_file,
+        overrides=overrides,
+    )
+
     # multi-gpu (ddp) save data preparation
     run_on_main(
         prepare_SLURP_2,
@@ -56,32 +67,14 @@ if __name__ == "__main__":
             "train_splits": hparams["train_splits"],
             "slu_type": "direct",
             "skip_prep": hparams["skip_prep"],
+            "sampling": hparams["sampling"],
         },
     )
-
-    # We download and pretrain the tokenizer
-    run_on_main(hparams["pretrainer"].collect_files)
-    hparams["pretrainer"].load_collected(device=run_opts["device"])
-
-    # Load prev checkpoint if possible
-    hparams["checkpointer"].recover_if_possible()
-
-
-    # If --distributed_launch then
-    # create ddp_group with the right communication protocol
-    sb.utils.distributed.ddp_init_group(run_opts)
-
-    sb.create_experiment_directory(
-        experiment_directory=hparams["output_folder"],
-        hyperparams_to_save=hparams_file,
-        overrides=overrides,
-    )
-
 
     # # here we create the datasets objects as well as tokenization and encoding
     (train_set, valid_set, test_set, tokenizer,) = dataio_prepare(hparams)
 
-    # # We download and pretrain the tokenizer
+    # We download and pretrain the tokenizer
     run_on_main(hparams["pretrainer"].collect_files)
     hparams["pretrainer"].load_collected(device=run_opts["device"])
 
