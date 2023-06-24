@@ -39,7 +39,6 @@ models:
       data_folder: !ref <working_dir>/slurp
       prepared_folder: !ref <working_dir>/prepared
       output_folder: !ref <working_dir>/out/
-
     training_file: !ref <project_dir>/recipes/direct/train.py
 
   v3:

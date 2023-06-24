@@ -33,7 +33,10 @@ if __name__ == "__main__":
                 l = arg[len("--"):].split('=')
                 if len(l) > 2:
                     raise Exception(f"Parse kwarg failed: len >= 2 {l}")
-                d[l[0]] = l[1]
+                elif len(l) == 2:
+                    d[l[0]] = l[1]
+                else:
+                    d[l[0]] = None
             else:
                 raise Exception(f"Unsupported arg: {arg}")
         return d
@@ -90,10 +93,8 @@ if __name__ == "__main__":
     print("===================")
     print("DOWNLOAD PREPARED CSV:")
     import os
-    # os.popen(os.path.join(cur_file_dir, './download_prepared_csv.sh'))
     subprocess.call([
         os.path.join(cur_file_dir, './download_prepared_csv.sh'),
-        # overrides["prepared_folder"]
         overrides["output_folder"]
     ])
 

@@ -132,7 +132,8 @@ class SLU(sb.Brain):
             if stage == sb.Stage.TEST:
                 # write to "predictions.jsonl"
                 with jsonlines.open(
-                        self.hparams["output_folder"] + "/predictions.jsonl", mode="a"
+                        # self.hparams["output_folder"] + "/predictions.jsonl", mode="a"
+                        self.hparams.output_folder + "/predictions.jsonl", mode="a"
                 ) as writer:
                     for i in range(len(predicted_semantics)):
                         try:
@@ -161,6 +162,7 @@ class SLU(sb.Brain):
     def log_outputs(self, predicted_semantics, target_semantics):
         """ TODO: log these to a file instead of stdout """
         for i in range(len(target_semantics)):
+            print("")
             print(" ".join(predicted_semantics[i]).replace("|", ","))
             print(" ".join(target_semantics[i]).replace("|", ","))
             print("")
