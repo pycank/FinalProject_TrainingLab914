@@ -10,7 +10,7 @@
 # Edit:
 #   V1:
 #   V1a:
-#     - Without data augmentation
+#     - Without data augmentation and env_corrupt
 #     - -> File logger
 # Score:
 # ############################################################################
@@ -122,20 +122,20 @@ seq_lin: !new:speechbrain.nnet.linear.Linear
   input_size: !ref <dec_neurons>
   n_neurons: !ref <output_neurons>
 
-env_corrupt: !new:speechbrain.lobes.augment.EnvCorrupt
-  openrir_folder: !ref <data_folder_rirs>
-  babble_prob: 0.0
-  reverb_prob: 0.0
-  noise_prob: 1.0
-  noise_snr_low: 0
-  noise_snr_high: 15
+#env_corrupt: !new:speechbrain.lobes.augment.EnvCorrupt
+#  openrir_folder: !ref <data_folder_rirs>
+#  babble_prob: 0.0
+#  reverb_prob: 0.0
+#  noise_prob: 1.0
+#  noise_snr_low: 0
+#  noise_snr_high: 15
 
 modules:
   slu_enc: !ref <slu_enc>
   output_emb: !ref <output_emb>
   dec: !ref <dec>
   seq_lin: !ref <seq_lin>
-  env_corrupt: !ref <env_corrupt>
+#  env_corrupt: !ref <env_corrupt>
 
 model: !new:torch.nn.ModuleList
   - [!ref <slu_enc>, !ref <output_emb>,
@@ -182,9 +182,9 @@ checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
     counter: !ref <epoch_counter>
     # ADD
 
-augmentation: !new:speechbrain.lobes.augment.TimeDomainSpecAugment
-  sample_rate: !ref <sample_rate>
-  speeds: [95, 100, 105]
+#augmentation: !new:speechbrain.lobes.augment.TimeDomainSpecAugment
+#  sample_rate: !ref <sample_rate>
+#  speeds: [95, 100, 105]
 
 log_softmax: !new:speechbrain.nnet.activations.Softmax
   apply_log: True

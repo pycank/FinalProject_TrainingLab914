@@ -225,3 +225,55 @@ class SLU(sb.Brain):
                 self.wer_metric.write_stats(w)
 
 
+class TransformerSLU(sb.Brain):
+    def compute_forward(self, batch, stage):
+        """Forward computations from the waveform batches to the output probabilities."""
+        batch = batch.to(self.device)
+        wavs, wav_lens = batch.sig
+        tokens_bos, tokens_bos_lens = batch.tokens_bos
+
+        # NOTE: WAV AUG HERE!!!!!!!!!!!!!!!!!
+        # Add augmentation if specified
+        if stage == sb.Stage.TRAIN:
+            # Default: add noise
+            if hasattr(self.hparams, "env_corrupt"):
+                wavs_noise = self.hparams.env_corrupt(wavs, wav_lens)
+                wavs = torch.cat([wavs, wavs_noise], dim=0)
+                wav_lens = torch.cat([wav_lens, wav_lens])
+                tokens_bos = torch.cat([tokens_bos, tokens_bos], dim=0)
+                # tokens_bos_lens = torch.cat([tokens_bos_lens, tokens_bos_lens])
+            if hasattr(self.hparams, "augmentation"):
+                wavs = self.hparams.augmentation(wavs, wav_lens)
+
+        # ASR encoder forward pass
+        with torch.no_grad():
+            ASR_encoder_out = self.hparams.asr_model.encode_batch(
+                wavs.detach(), wav_lens
+            )
+
+        # SLU forward pass
+        # encoder_out = self.hparams.slu_enc(ASR_encoder_out)
+        # e_in = self.hparams.output_emb(tokens_bos)
+        # h, _ = self.hparams.dec(e_in, encoder_out, wav_lens)
+        src = self.modules.CNN(ASR_encoder_out)
+        enc_out, pred = self.modules.Transformer(
+            src, tokens_bos, wav_lens, pad_idx=self.hparams.pad_index
+        )
+
+        # output layer for ctc log-probabilities
+        logits = self.modules.ctc_lin(enc_out)
+        p_ctc = self.hparams.log_softmax(logits)
+
+        # Output layer for seq2seq log-probabilities
+        logits = self.hparams.seq_lin(h)
+        p_seq = self.hparams.log_softmax(logits)
+
+        # Compute outputs
+        if (
+                stage == sb.Stage.TRAIN
+                and self.batch_count % show_results_every != 0
+        ):
+            return p_seq, wav_lens
+        else:
+            p_tokens, scores = self.hparams.beam_searcher(encoder_out, wav_lens)
+            return p_seq, wav_lens, p_tokens
