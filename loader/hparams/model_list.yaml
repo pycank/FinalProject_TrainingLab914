@@ -41,6 +41,17 @@ models:
       output_folder: !ref <working_dir>/out/
     training_file: !ref <project_dir>/recipes/direct/train.py
 
+  v1l:
+    description: v1 without data augmentation
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1l.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 1999
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
   v3:
     description: using transformer decoder
     config_path: !ref <project_dir>/recipes/direct/hparams/train_v3.yaml

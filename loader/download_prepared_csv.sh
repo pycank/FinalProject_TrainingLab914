@@ -15,6 +15,9 @@ then
   gdown --folder 10qssW9bxqht2qBysr5UUzyILIePm2dco
   mv v1-ds-sample-0.2-by-intent-only/* $out_dir
   rm -rf v1-ds-sample-0.2-by-intent-only
+  gdown --folder 1Tt5fmaxyg7ZNOupE_FctH8osGigIGvp0
+  mv v2-ds-sample-0.2-by-intent-entities/* $out_dir
+  rm -rf v2-ds-sample-0.2-by-intent-entities
 
 else
   echo "Not found out_dir"
