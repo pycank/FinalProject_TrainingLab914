@@ -146,7 +146,7 @@ class SLU(sb.Brain):
                 print(" ".join(target_semantics[i]).replace("|", ","))
                 print("")
             except Exception:
-                print(f"Error: SLU.log_outputs: predicted_semantics_len={len(predicted_semantics)}, id={i}")
+                print(f"Error: SLU.log_outputs: predicted_semantics_len={len(predicted_semantics)}, id={i}, value={predicted_semantics[i]}")
 
     def fit_batch(self, batch):
         """Train the parameters given a single batch in input"""

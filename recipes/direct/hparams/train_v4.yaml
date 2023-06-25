@@ -51,7 +51,7 @@ wav2vec2_hub: "facebook/hubert-base-ls960"
 
 # Training parameters
 number_of_epochs: 20 # 35
-batch_size: 8 # 6
+batch_size: 6
 lr: 0.0003
 lr_wav2vec2: 0.00001
 # token_type: unigram # ["unigram", "bpe", "char"]
