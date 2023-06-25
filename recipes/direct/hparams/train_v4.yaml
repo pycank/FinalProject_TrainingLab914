@@ -8,7 +8,7 @@
 # Authors:  Loren Lugosch, Mirco Ravanelli 2020 Boumadane Abdelmoumene, AbdelWahab Heba, Yingzhi Wang 2021
 # For more wav2vec2/HuBERT results, please see https://arxiv.org/pdf/2111.02735.pdf
 # Edit:
-#   V3:
+#   V4:
 # ############################################################################
 
 working_dir: !<PLACEHOLDER>
@@ -50,8 +50,8 @@ csv_test: !ref <output_folder>/test-type=direct.csv
 wav2vec2_hub: "facebook/hubert-base-ls960"
 
 # Training parameters
-number_of_epochs: 35
-batch_size: 6
+number_of_epochs: 20 # 35
+batch_size: 8 # 6
 lr: 0.0003
 lr_wav2vec2: 0.00001
 # token_type: unigram # ["unigram", "bpe", "char"]

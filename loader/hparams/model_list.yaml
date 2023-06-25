@@ -56,9 +56,8 @@ models:
     description: using wab2vec pretrained
     config_path: !ref <project_dir>/recipes/direct/hparams/train_v4.yaml
     config_overrides:
-      working_dir: !ref <working_dir>
       seed: 2016
+      working_dir: !ref <working_dir>
       data_folder: !ref <working_dir>/slurp
-#      prepared_folder: !ref <working_dir>/prepared
-      output_folder: !ref <working_dir>/2016/out/
+      output_folder: !ref <working_dir>/out/2016
     training_file: !ref <project_dir>/recipes/direct/train_wav2vec.py

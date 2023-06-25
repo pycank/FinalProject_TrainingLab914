@@ -24,6 +24,12 @@ import jsonlines
 import ast
 import pandas as pd
 
+def _decode_ids(tokenizer, utt_seq):
+    try:
+        semantic = tokenizer.decode_ids(utt_seq).split(" ")
+        return semantic
+    except Exception:
+        print(f"ERROR: unable to decode utt_seq={utt_seq}")
 
 class SLU(sb.Brain):
     def compute_forward(self, batch, stage):
@@ -83,9 +89,11 @@ class SLU(sb.Brain):
         if (stage != sb.Stage.TRAIN) or (
             self.batch_count % show_results_every == 0
         ):
+            predicted_semantics = []
             # Decode token terms to words
             predicted_semantics = [
-                tokenizer.decode_ids(utt_seq).split(" ")
+                _decode_ids(tokenizer, utt_seq)
+                # tokenizer.decode_ids(utt_seq).split(" ")
                 for utt_seq in predicted_tokens
             ]
 
@@ -133,9 +141,12 @@ class SLU(sb.Brain):
     def log_outputs(self, predicted_semantics, target_semantics):
         """ TODO: log these to a file instead of stdout """
         for i in range(len(target_semantics)):
-            print(" ".join(predicted_semantics[i]).replace("|", ","))
-            print(" ".join(target_semantics[i]).replace("|", ","))
-            print("")
+            try:
+                print(" ".join(predicted_semantics[i]).replace("|", ","))
+                print(" ".join(target_semantics[i]).replace("|", ","))
+                print("")
+            except Exception:
+                print(f"Error: SLU.log_outputs: predicted_semantics_len={len(predicted_semantics)}, id={i}")
 
     def fit_batch(self, batch):
         """Train the parameters given a single batch in input"""
@@ -316,7 +327,7 @@ if __name__ == "__main__":
 
     # If --distributed_launch then
     # create ddp_group with the right communication protocol
-    sb.utils.distributed.ddp_init_group(run_opts)
+    # sb.utils.distributed.ddp_init_group(run_opts)
 
     # Create experiment directory
     sb.create_experiment_directory(
