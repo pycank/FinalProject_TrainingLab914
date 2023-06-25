@@ -45,7 +45,17 @@ def prepare_SLURP_2(
         zip_location = os.path.join(data_folder, "slurp_synth.tar.gz")
         if not os.path.exists(zip_location):
             # Download the zip file from drive faster than zenodo
-            gdown.download(id="15EZv2xJT4OrqPgbMT_xIOQbKrlYnBukt", output=zip_location, quiet=False, fuzzy=True)
+            g_ids = [
+                "15EZv2xJT4OrqPgbMT_xIOQbKrlYnBukt",
+                "14Dptg-EFHx1SSznW7O6cDtHYTJkbrhAv",
+                "1IX6l0aUIHC4L6qd8NafFx0_FXgp40Fvz"
+            ]
+            for id in g_ids:
+                try:
+                    gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
+                    break
+                except Exception:
+                    pass
             url = "https://zenodo.org/record/4274930/files/slurp_synth.tar.gz?download=1"
             download_file(url, zip_location, unpack=True)
         else:
@@ -57,8 +67,17 @@ def prepare_SLURP_2(
         zip_location = os.path.join(data_folder, "slurp_real.tar.gz")
         if not os.path.exists(zip_location):
             # Download the zip file from drive faster than zenodo
-            gdown.download(id="14kPQCaobprOnArK-VofYZyhyLnlXeFt7", output=zip_location, quiet=False, fuzzy=True)
-
+            g_ids = [
+                "14kPQCaobprOnArK-VofYZyhyLnlXeFt7",
+                "1TXWQCmODeRiGkcFdj5Inv6J4pJlt7s8f",
+                "1cMrwO-TRDVcRFVpuRY2LJ-TRHsXtD2KK"
+            ]
+            for id in g_ids:
+                try:
+                    gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
+                    break
+                except Exception:
+                    pass
             url = "https://zenodo.org/record/4274930/files/slurp_real.tar.gz?download=1"
             download_file(url, zip_location, unpack=True)
         else:
