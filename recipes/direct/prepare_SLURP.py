@@ -204,6 +204,8 @@ def prepare_SLURP_2(
             match strategy:
                 case "stratified_sampling":
                     cfg = strategies['stratified_sampling']
+                    assert cfg
+
                     for path in tqdm(file_paths):
                         sampled_file_path = path.replace(".csv", f"-sample={cfg['selection_rate']}.csv")
                         print(f"Sampling: {sampled_file_path}")

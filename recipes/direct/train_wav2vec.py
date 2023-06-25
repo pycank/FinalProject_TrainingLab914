@@ -310,6 +310,7 @@ if __name__ == "__main__":
     hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
     with open(hparams_file) as fin:
         hparams = load_hyperpyyaml(fin, overrides)
+        print(hparams)
 
     show_results_every = 100  # plots results every N iterations
 

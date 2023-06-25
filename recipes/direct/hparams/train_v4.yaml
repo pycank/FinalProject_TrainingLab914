@@ -39,8 +39,8 @@ sampling:
         - !ref <o_csv_test>
     strategies:
         stratified_sampling:
-        selection_rate: 0.2
-        by: intent
+            selection_rate: 0.2
+            by: intent
 # Load csv
 csv_train: !ref <output_folder>/train-type=direct-sample=0.2.csv
 csv_valid: !ref <output_folder>/devel-type=direct-sample=0.2.csv
