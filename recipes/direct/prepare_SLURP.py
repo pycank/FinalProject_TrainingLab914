@@ -52,8 +52,9 @@ def prepare_SLURP_2(
             ]
             for id in g_ids:
                 try:
-                    gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
-                    break
+                    f_name = gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
+                    if not f_name:
+                        break
                 except Exception:
                     pass
             url = "https://zenodo.org/record/4274930/files/slurp_synth.tar.gz?download=1"
@@ -74,8 +75,9 @@ def prepare_SLURP_2(
             ]
             for id in g_ids:
                 try:
-                    gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
-                    break
+                    f_name = gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
+                    if not f_name:
+                        break
                 except Exception:
                     pass
             url = "https://zenodo.org/record/4274930/files/slurp_real.tar.gz?download=1"
