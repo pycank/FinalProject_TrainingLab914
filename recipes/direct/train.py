@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     # If --distributed_launch then
     # create ddp_group with the right communication protocol
-    sb.utils.distributed.ddp_init_group(run_opts)
+    # sb.utils.distributed.ddp_init_group(run_opts)
 
     # Create experiment directory
     sb.create_experiment_directory(
@@ -109,6 +109,8 @@ if __name__ == "__main__":
     df = pd.read_csv(hparams["csv_test"])
     for i in range(len(df)):
         id_to_file[str(df.ID[i])] = df.wav[i].split("/")[-1]
+
+    slu_brain.id_to_file = id_to_file
 
     slu_brain.hparams.wer_file = hparams["output_folder"] + "/wer_test_real.txt"
     slu_brain.evaluate(test_set, test_loader_kwargs=hparams["dataloader_opts"])

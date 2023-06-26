@@ -24,7 +24,7 @@ import ast
 # TODO: To config
 show_results_every=100
 # tokenizer=None
-id_to_file={}
+# global id_to_file # ={}
 
 # Define training procedure
 class SLU(sb.Brain):
@@ -154,8 +154,11 @@ class SLU(sb.Brain):
                                 "action": "none",
                                 "entities": [],
                             }
-                        _dict["file"] = id_to_file[ids[i]]
-                        writer.write(_dict)
+                        try:
+                            _dict["file"] = self.id_to_file[ids[i]]
+                            writer.write(_dict)
+                        except Exception:
+                            print(f"Not found: {ids[i]} in {self.id_to_file}")
 
         return loss
 
