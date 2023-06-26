@@ -70,5 +70,5 @@ models:
       seed: 2016
       working_dir: !ref <working_dir>
       data_folder: !ref <working_dir>/slurp
-      output_folder: !ref <working_dir>/out/2016
+      output_folder: !ref <working_dir>/out/
     training_file: !ref <project_dir>/recipes/direct/train_wav2vec.py
