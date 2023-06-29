@@ -34,7 +34,10 @@ if __name__ == "__main__":
                 if len(l) > 2:
                     raise Exception(f"Parse kwarg failed: len >= 2 {l}")
                 elif len(l) == 2:
-                    d[l[0]] = l[1]
+                    if l[1].isnumeric():
+                        d[l[0]] = int(l[1])
+                    else:
+                        d[l[0]] = l[1]
                 else:
                     d[l[0]] = None
             else:
