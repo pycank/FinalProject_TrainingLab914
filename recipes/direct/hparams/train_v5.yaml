@@ -20,6 +20,7 @@ train_log: !ref <output_folder>/train_log.txt
 # Data files
 # The SLURP dataset will be automatically downloaded in the specified data_folder
 data_folder: !ref <working_dir>/slurp # !<PLACEHOLDER> # e.g, /localscratch/SLURP
+prepared_folder: .
 # data_folder_rirs: !ref <data_folder>
 train_splits: ["train_synthetic", "train_real"]
 tokenizer_file: speechbrain/SLU-direct-SLURP-hubert-enc
