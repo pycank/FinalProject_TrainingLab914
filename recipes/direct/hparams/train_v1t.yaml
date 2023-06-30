@@ -26,7 +26,7 @@ log_folder: !ref <output_folder>/log
 data_folder: /audio
 data_folder_rirs: !ref <data_folder>
 train_splits: ["train_synthetic", "train_real"]
-tokenizer_file: https://raw.githubusercontent.com/hahunavth/FinalProject_TrainingLab914/main/pretrained_models/tokenizer/108_unigram.model?token=GHSAT0AAAAAACCDKYADKTMDN4IXX2AVWQOSZE6KJQA
+tokenizer_file: https://drive.google.com/uc?export=download&id=1qLFcDv-36QCFfRUD2XDs0ybajdTHBw-S
 skip_prep: False
 # original csv
 o_csv_train: !ref <output_folder>/train-type=direct.csv
@@ -45,8 +45,8 @@ sampling:
       by: intent
 
 # Load csv
-csv_train: !ref <output_folder>/train-type=direct-sample=0.2_v2.csv
-csv_valid: !ref <output_folder>/devel-type=direct-sample=0.2_v2.csv
+csv_train: !ref <output_folder>/train-type=direct-sampling=0.2_v2.csv
+csv_valid: !ref <output_folder>/devel-type=direct-sampling=0.2_v2.csv
 csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Training parameters
