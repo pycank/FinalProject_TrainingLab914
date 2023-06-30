@@ -1,0 +1,204 @@
+# ############################################################################
+# Model: Direct SLU
+# Encoder: Pre-trained wav2vec2 -> LSTM
+# Decoder: GRU + beamsearch
+# Tokens: BPE with unigram
+# losses: NLL
+# Training: SLURP
+# Authors:  Loren Lugosch, Mirco Ravanelli 2020 Boumadane Abdelmoumene, AbdelWahab Heba, Yingzhi Wang 2021
+# For more wav2vec2/HuBERT results, please see https://arxiv.org/pdf/2111.02735.pdf
+# ############################################################################
+
+working_dir: . # !<PLACEHOLDER>
+# Seed needs to be set at top of yaml, before objects with parameters are made
+seed: 1986
+__set_seed: !apply:torch.manual_seed [!ref <seed>]
+output_folder: !ref <working_dir>/out # ref <working_dir>/<seed>
+save_folder: !ref <output_folder>/save
+train_log: !ref <output_folder>/train_log.txt
+
+# Data files
+# The SLURP dataset will be automatically downloaded in the specified data_folder
+data_folder: !ref <working_dir>/slurp # !<PLACEHOLDER> # e.g, /localscratch/SLURP
+# data_folder_rirs: !ref <data_folder>
+train_splits: ["train_synthetic", "train_real"]
+tokenizer_file: speechbrain/SLU-direct-SLURP-hubert-enc
+skip_prep: False
+
+# original csv
+o_csv_train: !ref <output_folder>/train-typedirect.csv
+o_csv_valid: !ref <output_folder>/devel-typedirect.csv
+o_csv_test: !ref <output_folder>/test-typedirect.csv
+# Data sampling strategy
+sampling:
+    files:
+        - !ref <o_csv_train>
+        - !ref <o_csv_valid>
+        - !ref <o_csv_test>
+    strategies:
+        stratified_sampling:
+            selection_rate: 0.2
+            by: intent
+# Load csv
+csv_train: !ref <output_folder>/train-typedirect-sample0.2.csv
+csv_valid: !ref <output_folder>/devel-typedirect-sample0.2.csv
+csv_test: !ref <output_folder>/test-typedirect.csv
+
+# URL for the wav2vec2 model, you can change to benchmark diffrenet models
+wav2vec2_hub: "facebook/hubert-base-ls960"
+
+
+# Training parameters
+data_folder_rirs: !ref <data_folder>
+#
+number_of_epochs: 18 # 20 # 35
+batch_size: 6
+lr: 0.0003
+lr_wav2vec2: 0.00001
+# token_type: unigram # ["unigram", "bpe", "char"]
+sorting: random
+ckpt_interval_minutes: 15 # save checkpoint every N min
+
+#freeze all wav2vec2
+freeze_wav2vec2: False
+
+#set to true to freeze the CONV part of the wav2vec2 model
+freeze_wav2vec2_conv: True
+
+# Model parameters
+sample_rate: 16000
+emb_size: 128
+dec_neurons: 768 # 512
+output_neurons: 58 # index(eos/bos) = 0
+encoder_dim: 768 # 512 # 768
+
+# Decoding parameters
+bos_index: 0
+eos_index: 0
+min_decode_ratio: 0.0
+max_decode_ratio: 10.0
+slu_beam_size: 80
+eos_threshold: 1.5
+temperature: 1.25
+#
+blank_index: 0
+valid_beam_size: 80
+
+# Transformer
+d_model: 768 # 512
+nhead: 4
+num_encoder_layers: 2
+num_decoder_layers: 4
+d_ffn: 2048
+transformer_dropout: 0.1
+activation: !name:torch.nn.GELU
+
+dataloader_opts:
+    batch_size: !ref <batch_size>
+    shuffle: True
+
+epoch_counter: !new:speechbrain.utils.epoch_loop.EpochCounter
+    limit: !ref <number_of_epochs>
+
+# Models
+wav2vec2: !new:speechbrain.lobes.models.huggingface_wav2vec.HuggingFaceWav2Vec2
+    source: !ref <wav2vec2_hub>
+    output_norm: True
+    freeze: !ref <freeze_wav2vec2>
+    save_path: !ref <save_folder>/wav2vec2_checkpoint
+
+
+Transformer: !new:speechbrain.lobes.models.transformer.TransformerASR.TransformerASR # yamllint disable-line rule:line-length
+    input_size: 768 # 1024
+    tgt_vocab: !ref <output_neurons>
+    d_model: !ref <d_model>
+    nhead: !ref <nhead>
+    num_encoder_layers: !ref <num_encoder_layers>
+    num_decoder_layers: !ref <num_decoder_layers>
+    d_ffn: !ref <d_ffn>
+    dropout: !ref <transformer_dropout>
+    activation: !ref <activation>
+    normalize_before: True
+
+seq_lin: !new:speechbrain.nnet.linear.Linear
+    input_size: !ref <d_model>
+    n_neurons: !ref <output_neurons>
+
+env_corrupt: !new:speechbrain.lobes.augment.EnvCorrupt
+    openrir_folder: !ref <data_folder_rirs>
+    babble_prob: 0.0
+    reverb_prob: 0.0
+    noise_prob: 1.0
+    noise_snr_low: 0
+    noise_snr_high: 15
+
+modules:
+    wav2vec2: !ref <wav2vec2>
+    Transformer: !ref <Transformer>
+    seq_lin: !ref <seq_lin>
+    env_corrupt: !ref <env_corrupt>
+
+model: !new:torch.nn.ModuleList
+    - [!ref <Transformer>, !ref <seq_lin>]
+
+tokenizer: !new:sentencepiece.SentencePieceProcessor
+
+pretrainer: !new:speechbrain.utils.parameter_transfer.Pretrainer
+    collect_in: !ref <save_folder>/SLURP_tokenizer
+    loadables:
+        tokenizer: !ref <tokenizer>
+    paths:
+        tokenizer: !ref <tokenizer_file>/tokenizer_58_unigram.model
+
+#####
+beam_searcher: !new:speechbrain.decoders.S2STransformerBeamSearch
+    modules: [!ref <Transformer>, !ref <seq_lin>, null]
+    bos_index: !ref <bos_index>
+    eos_index: !ref <eos_index>
+    blank_index: !ref <blank_index>
+    min_decode_ratio: !ref <min_decode_ratio>
+    max_decode_ratio: !ref <max_decode_ratio>
+    beam_size: !ref <valid_beam_size>
+    # ctc_weight: !ref <ctc_weight_decode>
+    using_eos_threshold: False
+    length_normalization: True
+
+opt_class: !name:torch.optim.Adam
+    lr: !ref <lr>
+
+wav2vec2_opt_class: !name:torch.optim.Adam
+    lr: !ref <lr_wav2vec2>
+
+lr_annealing: !new:speechbrain.nnet.schedulers.NewBobScheduler
+    initial_value: !ref <lr>
+    improvement_threshold: 0.0025
+    annealing_factor: 0.8
+    patient: 0
+
+lr_annealing_wav2vec2: !new:speechbrain.nnet.schedulers.NewBobScheduler
+    initial_value: !ref <lr_wav2vec2>
+    improvement_threshold: 0.0025
+    annealing_factor: 0.9
+
+checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
+    checkpoints_dir: !ref <save_folder>
+    recoverables:
+        model: !ref <model>
+        wav2vec2: !ref <wav2vec2>
+        scheduler: !ref <lr_annealing>
+        lr_annealing_wav2vec2: !ref <lr_annealing_wav2vec2>
+        counter: !ref <epoch_counter>
+
+log_softmax: !new:speechbrain.nnet.activations.Softmax
+    apply_log: True
+
+seq_cost: !name:speechbrain.nnet.losses.nll_loss
+    label_smoothing: 0.1
+
+train_logger: !new:speechbrain.utils.train_logger.FileTrainLogger
+    save_file: !ref <train_log>
+
+error_rate_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
+
+cer_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
+    split_tokens: True

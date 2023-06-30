@@ -94,3 +94,14 @@ models:
       data_folder: !ref <working_dir>/slurp
       output_folder: !ref <working_dir>/out/
     training_file: !ref <project_dir>/recipes/direct/train_wav2vec.py
+
+  v5:
+    description: v4 with transformer
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v5.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2003
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train_wav2vec_trans.py
