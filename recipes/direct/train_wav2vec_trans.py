@@ -312,13 +312,14 @@ if __name__ == "__main__":
     # adding objects to trainer:
     model.tokenizer = tokenizer
 
-    model.fit(
-        model.hparams.epoch_counter,
-        train_set,
-        valid_set,
-        train_loader_kwargs=hparams["dataloader_opts"],
-        valid_loader_kwargs=hparams["dataloader_opts"],
-    )
+    with torch.autograd.detect_anomaly():
+        model.fit(
+            model.hparams.epoch_counter,
+            train_set,
+            valid_set,
+            train_loader_kwargs=hparams["dataloader_opts"],
+            valid_loader_kwargs=hparams["dataloader_opts"],
+        )
 
     # # Test
     print("Creating id_to_file mapping...")

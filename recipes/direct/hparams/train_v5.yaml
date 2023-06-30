@@ -86,10 +86,10 @@ valid_beam_size: 80
 
 # Transformer
 d_model: 768 # 512
-nhead: 4
-num_encoder_layers: 2
-num_decoder_layers: 4
-d_ffn: 1024 # 2048
+nhead: 2 # 4
+num_encoder_layers: 1
+num_decoder_layers: 3
+d_ffn: 768 # 1024 # 2048
 transformer_dropout: 0.1
 activation: !name:torch.nn.GELU
 
@@ -161,7 +161,7 @@ beam_searcher: !new:speechbrain.decoders.S2STransformerBeamSearch
     beam_size: !ref <valid_beam_size>
     # ctc_weight: !ref <ctc_weight_decode>
     using_eos_threshold: False
-    length_normalization: True
+    length_normalization: False # True
 
 opt_class: !name:torch.optim.Adam
     lr: !ref <lr>
