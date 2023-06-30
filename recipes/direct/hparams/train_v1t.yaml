@@ -29,9 +29,9 @@ train_splits: ["train_synthetic", "train_real"]
 tokenizer_file: https://raw.githubusercontent.com/hahunavth/FinalProject_TrainingLab914/main/pretrained_models/tokenizer/108_unigram.model?token=GHSAT0AAAAAACCDKYADKTMDN4IXX2AVWQOSZE6KJQA
 skip_prep: False
 # original csv
-o_csv_train: !ref <prepared_folder>/train-type=direct.csv
-o_csv_valid: !ref <prepared_folder>/devel-type=direct.csv
-o_csv_test: !ref <prepared_folder>/test-type=direct.csv
+o_csv_train: !ref <output_folder>/train-type=direct.csv
+o_csv_valid: !ref <output_folder>/devel-type=direct.csv
+o_csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Data sampling strategy
 sampling:
@@ -45,9 +45,9 @@ sampling:
       by: intent
 
 # Load csv
-csv_train: !ref <prepared_folder>/train-type=direct-sample=0.2_v2.csv
-csv_valid: !ref <prepared_folder>/devel-type=direct-sample=0.2_v2.csv
-csv_test: !ref <prepared_folder>/test-type=direct.csv
+csv_train: !ref <output_folder>/train-type=direct-sample=0.2_v2.csv
+csv_valid: !ref <output_folder>/devel-type=direct-sample=0.2_v2.csv
+csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20
