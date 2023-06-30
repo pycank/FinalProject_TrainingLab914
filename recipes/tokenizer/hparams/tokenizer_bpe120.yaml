@@ -4,9 +4,9 @@
 seed: 1986
 __set_seed: !apply:torch.manual_seed [!ref <seed>]
 
-working_dir: !PLACEHOLDER # override it
-output_folder: !ref results/better_tokenizer/<seed>
-save_folder: !ref <output_folder>/save
+working_dir: /content # override it
+output_folder: /content/out/save
+save_folder: !ref <output_folder>
 
 tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
 
