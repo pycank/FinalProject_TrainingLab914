@@ -75,7 +75,7 @@ models:
     training_file: !ref <project_dir>/recipes/direct/train.py
 
   v1t2:
-    description: v1 with tokenization unigram 108
+    description: v1 with tokenization unigram t108u
     config_path: !ref <project_dir>/recipes/direct/hparams/train_v1t2.yaml
     config_overrides:
       working_dir: !ref <working_dir>
@@ -86,7 +86,7 @@ models:
     training_file: !ref <project_dir>/recipes/direct/train.py
 
   v1t3:
-    description: v1 with tokenization unigram 108
+    description: v1 with tokenization unigram t256u
     config_path: !ref <project_dir>/recipes/direct/hparams/train_v1t3.yaml
     config_overrides:
       working_dir: !ref <working_dir>
@@ -123,6 +123,16 @@ models:
     config_path: !ref <project_dir>/recipes/direct/hparams/train_v4.yaml
     config_overrides:
       seed: 2016
+      working_dir: !ref <working_dir>
+      data_folder: !ref <working_dir>/slurp
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train_wav2vec.py
+
+  v4t3:
+    description: using wab2vec pretrained
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v4t3.yaml
+    config_overrides:
+      seed: 2017
       working_dir: !ref <working_dir>
       data_folder: !ref <working_dir>/slurp
       output_folder: !ref <working_dir>/out/
