@@ -74,6 +74,28 @@ models:
       output_folder: !ref <working_dir>/out/
     training_file: !ref <project_dir>/recipes/direct/train.py
 
+  v1t2:
+    description: v1 with tokenization unigram 108
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1t2.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2004
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1t3:
+    description: v1 with tokenization unigram 108
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1t3.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2005
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
   v1m:
     description: v1 without data augmentation
     config_path: !ref <project_dir>/recipes/direct/hparams/train_v1m.yaml
