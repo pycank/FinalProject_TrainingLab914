@@ -37,11 +37,11 @@ data_folder: /audio
 data_folder_rirs: !ref <data_folder>
 train_splits: ["train_synthetic", "train_real"]
 tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
-skip_prep: False
+skip_prep: True
 # original csv
-o_csv_train: !ref <prepared_folder>/train-type=direct.csv
-o_csv_valid: !ref <prepared_folder>/devel-type=direct.csv
-o_csv_test: !ref <prepared_folder>/test-type=direct.csv
+o_csv_train: !ref <output_folder>/train-type=direct.csv
+o_csv_valid: !ref <output_folder>/devel-type=direct.csv
+o_csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Data sampling strategy
 sampling:
@@ -55,9 +55,9 @@ sampling:
       by: intent
 
 # Load csv
-csv_train: !ref <prepared_folder>/train-type=direct-sample=0.2.csv
-csv_valid: !ref <prepared_folder>/devel-type=direct-sample=0.2.csv
-csv_test: !ref <prepared_folder>/test-type=direct.csv
+csv_train: !ref <output_folder>/train-type=direct-sampling=0.2_v2.csv
+csv_valid: !ref <output_folder>/devel-type=direct-sampling=0.2_v2.csv
+csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20

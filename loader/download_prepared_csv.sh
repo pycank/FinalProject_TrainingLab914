@@ -1,4 +1,5 @@
 #!/bin/bash
+# deprecated
 
 # Input directory (target to extract file from google drive folder)
 out_dir="$1"

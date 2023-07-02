@@ -93,13 +93,13 @@ if __name__ == "__main__":
     #     print(f"Working dir not exists: {working_dir} .. creating")
     #     os.makedirs(working_dir)
 
-    print("===================")
-    print("DOWNLOAD PREPARED CSV:")
-    import os
-    subprocess.call([
-        os.path.join(cur_file_dir, './download_prepared_csv.sh'),
-        overrides["output_folder"]
-    ])
+    # print("===================")
+    # print("DOWNLOAD PREPARED CSV:")
+    # import os
+    # subprocess.call([
+    #     os.path.join(cur_file_dir, './download_prepared_csv.sh'),
+    #     overrides["output_folder"]
+    # ])
 
     print("===================")
     print(f"CD working dir: {working_dir}")
