@@ -8,15 +8,7 @@
 # Authors:  Loren Lugosch, Mirco Ravanelli 2020
 #
 # Edit:
-#   V1:
-#     - Using tensorboard logger
-#     - Add sampling config
-# Score:
-#   SLU_F1:
-#     V1:
-#       - epoch_20: 0.55
-#       - epoch_40: 0.58
-#       - epoch_58: 0.58
+#  - Todo Modify decoder: add layernorm
 # ############################################################################
 
 # Seed needs to be set at top of yaml, before objects with parameters are made
