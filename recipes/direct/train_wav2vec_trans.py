@@ -19,6 +19,9 @@ def _decode_ids(tokenizer, utt_seq):
 
 class SLUWithTranDec(sb.Brain):
     """
+    SLU wav2vec with transformer
+    Todo: impl transformer
+
     modules: Transformer, seq_lin, ctc_lin, env_corrupt
     """
     def compute_forward(self, batch, stage):
@@ -40,7 +43,8 @@ class SLUWithTranDec(sb.Brain):
         """
         batch = batch.to(self.device)
         wavs, wav_lens = batch.sig
-        tokens_bos, tokens_bos_lens = batch.tokens_bos
+        # tokens_bos, tokens_bos_lens = batch.tokens_bos
+        tokens_eos, tokens_eos_lens = batch.tokens_eos
 
         # NOTE: WAV AUG HERE!!!!!!!!!!!!!!!!!
         # Add augmentation if specified
@@ -57,14 +61,21 @@ class SLUWithTranDec(sb.Brain):
                 wavs = self.hparams.augmentation(wavs, wav_lens)
 
             #  encoder forward pass
+            # wav: (batch_size, len)
+            # wav_lens: (batch_size)
             wav2vec2_out = self.modules.wav2vec2(wavs, wav_lens)
+            # wav2vec2_out: (batch_size, .., 768)
 
-            print(f"wav2vec2_out: {wav2vec2_out.shape}")
-            print(f"tokens_bos: {tokens_bos.shape}")
-            print(f"wav_lens: {wav_lens.shape}")
+            # print(f"wav2vec2_out: {wav2vec2_out.shape}")
+            # print(f"tokens_bos: {tokens_bos.shape}")
+            # print(f"wav_lens: {wav_lens.shape}")
             # SLU forward pass
+            # enc_out == size wav2vec2_out
+            # pred: (batch_size, .., 58)
+            # tokens_bos: (batch_size, ..padded)
+            # wav_lens: [0-1., ....] (batch_size)
             enc_out, pred = self.hparams.Transformer(
-                wav2vec2_out, tokens_bos, wav_lens, pad_idx=0 # self.hparams.pad_index
+                wav2vec2_out, tokens_eos, wav_lens, pad_idx=0 # self.hparams.pad_index
             )
 
             # output layer for seq2seq log-probabilities
@@ -96,6 +107,8 @@ class SLUWithTranDec(sb.Brain):
         ids = batch.id
         tokens_eos, tokens_eos_lens = batch.tokens_eos
 
+        a = p_seq.shape
+        b = tokens_eos.shape
         loss_seq = self.hparams.seq_cost(
             p_seq, tokens_eos, length=tokens_eos_lens
         )
@@ -252,15 +265,19 @@ class SLUWithTranDec(sb.Brain):
 
 if __name__ == "__main__":
 
-    show_results_every = 100  # plots results every N iterations
-    # hparams_file = f"./results/better_tokenizer/1986/hyperparams.yaml"
-    # overrides = {}
-    # run_opts = {
-    #     "device": "cuda" if torch.cuda.is_available() else "cpu"
-    # }
+    show_results_every = 1  # plots results every N iterations
+    hparams_file = f"/home/kryo/Desktop/FinalProject_TrainingLab914/recipes/direct/hparams/train_v5.yaml"
+    overrides = {
+        "working_dir": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/working",
+        "data_folder": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/slurp/audio",
+        "skip_prep": True,
+    }
+    run_opts = {
+        "device": "cuda" if torch.cuda.is_available() else "cpu"
+    }
 
     # Load hyperparameters file with command-line overrides
-    hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
+    # hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
 
     with open(hparams_file) as fin:
         hparams = load_hyperpyyaml(fin, overrides)
@@ -285,7 +302,7 @@ if __name__ == "__main__":
             "train_splits": hparams["train_splits"],
             "slu_type": "direct",
             "skip_prep": hparams["skip_prep"],
-            "sampling": hparams["sampling"],
+            "sampling": hparams["sampling"] if "sampling" in hparams.keys() else None,
         },
     )
 

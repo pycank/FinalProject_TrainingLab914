@@ -1,0 +1,25 @@
+# Generated 2023-07-09 from:
+# /home/kryo/Desktop/FinalProject_TrainingLab914/recipes/tokenizer/hparams/tokenizer_bpe120.yaml
+# yamllint disable
+# Turning tokenizer
+
+# Seed needs to be set at top of yaml, before objects with parameters are made
+seed: 1986
+__set_seed: !apply:torch.manual_seed [1986]
+
+working_dir: ../      # !PLACEHOLDER
+output_folder: ..//out                 # Include csv files
+save_folder: ..//out/save              # Tokenizer output dir
+
+# ================================================
+# Tokenizer
+# ================================================
+vocab_size: 120
+type: bpe # [unigram, bpe, char]
+version: 1
+user_defined_symbols: []
+bos_index: -1  # -1 is not use this
+eos_index: -1  # -> check with <unk>
+file_name: tokenizer_120bpe_v1.ckpt
+
+tokenizer: !new:sentencepiece.SentencePieceProcessor
