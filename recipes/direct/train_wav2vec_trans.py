@@ -24,6 +24,10 @@ class SLUWithTranDec(sb.Brain):
 
     modules: Transformer, seq_lin, ctc_lin, env_corrupt
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.softmax = torch.nn.LogSoftmax(dim=-1)
+
     def compute_forward(self, batch, stage):
         """
         Forward computations from the waveform batches to the output probabilities.
@@ -107,8 +111,8 @@ class SLUWithTranDec(sb.Brain):
         ids = batch.id
         tokens_eos, tokens_eos_lens = batch.tokens_eos
 
-        a = p_seq.shape
-        b = tokens_eos.shape
+        # a = p_seq.shape
+        # b = tokens_eos.shape
         loss_seq = self.hparams.seq_cost(
             p_seq, tokens_eos, length=tokens_eos_lens
         )
@@ -175,6 +179,7 @@ class SLUWithTranDec(sb.Brain):
                 print(" ".join(predicted_semantics[i]).replace("|", ","))
                 print(" ".join(target_semantics[i]).replace("|", ","))
                 print("")
+                break
             except Exception:
                 print(f"Error: SLU.log_outputs: predicted_semantics_len={len(predicted_semantics)}, id={i}, value={predicted_semantics[i]}")
 
@@ -265,7 +270,7 @@ class SLUWithTranDec(sb.Brain):
 
 if __name__ == "__main__":
 
-    show_results_every = 1  # plots results every N iterations
+    show_results_every = 10  # plots results every N iterations
     hparams_file = f"/home/kryo/Desktop/FinalProject_TrainingLab914/recipes/direct/hparams/train_v5.yaml"
     overrides = {
         "working_dir": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/working",

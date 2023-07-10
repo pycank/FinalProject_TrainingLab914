@@ -9,6 +9,7 @@ class SpectrogramToDB(object):
     """
     change the spectrogram from the power/amplitude scale to the decibel scale
     """
+
     def __init__(self, stype="power", top_db=None):
         self.stype = stype
         if top_db is not None and top_db < 0:
@@ -27,12 +28,23 @@ class SpectrogramToDB(object):
             spec_db = torch.max(spec_db, spec_db.new_full((1,), spec_db.max() - self.top_db))
         return spec_db
 
-def tfm_spectro(sig, sr=16000, to_db_scale=False, n_fft=1024, ws=None,
-               hop=None, f_min=0.0, f_max=-80, pad=0, n_mels=128):
-    #reshape signal for torchaudio to generate the spectrogram
+
+def tfm_spectro(
+        sig,
+        sr=16000,
+        to_db_scale=False,
+        n_fft=1024,
+        ws=None,
+        hop=None,
+        f_min=0.0,
+        f_max=-80,
+        pad=0,
+        n_mels=128
+):
+    # reshape signal for torchaudio to generate the spectrogram
     print(sig.reshape(1, -1))
     mel = transforms.MelSpectrogram(sample_rate=sr, n_mels=n_mels, n_fft=n_fft,
-                                    win_length=ws, hop_length=hop, f_min=f_min, f_max=f_max, pad=pad,)\
+                                    win_length=ws, hop_length=hop, f_min=f_min, f_max=f_max, pad=pad, ) \
         (sig.reshape(1, -1))
     if to_db_scale: mel = SpectrogramToDB(stype='magnitude', top_db=f_max)(mel)
     return mel
@@ -79,8 +91,9 @@ def _time_mask(spec, T=40, num_masks=1, replace_with_zero=False):
 
 class SpecDomainAugmentation(torch.nn.Module):
     """
-
+    Augmentation speech data in spectrogram domain
     """
+
     def __init__(
             self,
             freq_mask_f=25,

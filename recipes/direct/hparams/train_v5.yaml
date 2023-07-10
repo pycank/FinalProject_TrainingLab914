@@ -76,19 +76,19 @@ encoder_dim: 512 # 768 # 512 # 512 # 768
 bos_index: 0
 eos_index: 0
 min_decode_ratio: 0.0
-max_decode_ratio: 1.0 # 10.0
+max_decode_ratio: 2.0 # 10.0
 slu_beam_size: 80
 eos_threshold: 1.5
 temperature: 1.25
 #
 blank_index: 0
-valid_beam_size: 80
+valid_beam_size: 56 # 80
 
 # Transformer
 d_model: 768 # 512
-nhead: 2 # 4
+nhead: 4 # 4
 num_encoder_layers: 1
-num_decoder_layers: 1 # 3
+num_decoder_layers: 3 # 3
 d_ffn: 512 # 768 # 1024 # 2048
 transformer_dropout: 0.1
 activation: !name:torch.nn.GELU
