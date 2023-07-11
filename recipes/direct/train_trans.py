@@ -68,7 +68,7 @@ class SLUDirectTrans(sb.Brain):
 
         # SLU forward pass
         tfm_enc_out, tfm_dec_out = self.hparams.Transformer(
-            ASR_enc_out, tokens_eos
+            ASR_enc_out, tokens_bos
         )
 
         # Output layer for seq2seq log-probabilities
