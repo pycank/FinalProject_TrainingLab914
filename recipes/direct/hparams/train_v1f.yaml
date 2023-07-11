@@ -48,7 +48,7 @@ csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20
-batch_size: 4 # 16
+batch_size: 2 # 16
 lr: 0.0003
 # token_type: unigram # ["unigram", "bpe", "char"]
 sorting: random
@@ -84,7 +84,7 @@ d_model: 512
 nhead: 1
 num_encoder_layers: 1
 num_decoder_layers: 3 # 3
-d_ffn: 128
+d_ffn: 1024
 transformer_dropout: 0.1
 activation: !name:torch.nn.GELU
 # beam_searcher
