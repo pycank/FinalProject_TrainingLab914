@@ -22,7 +22,8 @@ log_folder: !ref <output_folder>/log
 data_folder: !ref <working_dir>/slurp
 data_folder_rirs: !ref <data_folder>
 train_splits: ["train_synthetic", "train_real"]
-tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
+#tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
+tokenizer_file: https://drive.google.com/uc?export=download&id=1C8GBDBqzOsIOJPNFyXB7PkciCcqEJDn0
 skip_prep: True
 
 # Prepare csv
@@ -57,13 +58,14 @@ ckpt_interval_minutes: 15 # save checkpoint every N min
 sample_rate: 16000
 #emb_size: 128
 dec_neurons: 512
-output_neurons: 58 # index(eos/bos) = 0
+output_neurons: 60 # index(eos/bos) = 0
 ASR_encoder_dim: 512
 #encoder_dim: 256
 
 # Decoding parameters
-bos_index: 0
-eos_index: 0
+pad_index: 0
+bos_index: 1
+eos_index: 2
 min_decode_ratio: 0.1
 max_decode_ratio: 3.0 # 10.0
 slu_beam_size: 80
@@ -161,8 +163,8 @@ pretrainer: !new:speechbrain.utils.parameter_transfer.Pretrainer
   collect_in: !ref <save_folder>/SLURM_tokenizer
   loadables:
     tokenizer: !ref <tokenizer>
-  paths:
-    tokenizer: !ref <tokenizer_file>
+#  paths:
+#    tokenizer: !ref <tokenizer_file>
 
 valid_search: !new:speechbrain.decoders.S2STransformerBeamSearch
     modules: [!ref <Transformer>, !ref <seq_lin>, null]
