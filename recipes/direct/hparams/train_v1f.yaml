@@ -67,7 +67,7 @@ pad_index: 0
 bos_index: 1
 eos_index: 2
 min_decode_ratio: 0.1
-max_decode_ratio: 2.0 # 10.0
+max_decode_ratio: 5.0 # 10.0
 #slu_beam_size: 80
 eos_threshold: 1.5
 temperature: 1.25
@@ -83,14 +83,14 @@ epoch_counter: !new:speechbrain.utils.epoch_loop.EpochCounter
 d_model: 512
 nhead: 1
 num_encoder_layers: 1
-num_decoder_layers: 3 # 3
+num_decoder_layers: 3
 d_ffn: 1024
 transformer_dropout: 0.1
 activation: !name:torch.nn.GELU
 # beam_searcher
 blank_index: 0
 valid_beam_size: 10
-test_beam_size: 40 # !ref <slu_beam_size>
+test_beam_size: 40
 # ================================================================
 # Models
 # ================================================================

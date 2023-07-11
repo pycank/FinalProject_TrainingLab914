@@ -242,7 +242,7 @@ class SLUDirectTrans(sb.Brain):
 
 
 if __name__ == "__main__":
-    show_results_every = 2  # plots results every N iterations
+    show_results_every = 100  # plots results every N iterations
 
     # load hparams result
     # hparams_file = f"/home/kryo/Desktop/FinalProject_TrainingLab914/recipes/direct/hparams/train_v1f.yaml"
