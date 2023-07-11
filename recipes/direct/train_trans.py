@@ -1,60 +1,51 @@
-import sys
-
-import torch
-
-from dataio_prepare import dataio_prepare
-from prepare_SLURP import prepare_SLURP_2
-
-from hyperpyyaml import load_hyperpyyaml
-from speechbrain.utils.distributed import run_on_main
-import pandas as pd
-import speechbrain as sb
-
 """
 Recipe for "direct" (speech -> semantics) SLU with ASR-based transfer learning.
 
-We encode input waveforms into features using a model trained on LibriSpeech,
-then feed the features into a seq2seq model to map them to semantics.
-
-(Adapted from the LibriSpeech seq2seq ASR recipe written by Ju-Chieh Chou, Mirco Ravanelli, Abdel Heba, and Peter Plantinga.)
-
-Run using:
-> python train.py hparams/train.yaml
-
-Authors
- * Loren Lugosch 2020
- * Mirco Ravanelli 2020
+Customize from train.py
+- Using transformer instead of GNU+Attention
 """
 
 import sys
 import torch
+import pandas as pd
 import speechbrain as sb
 import jsonlines
 import ast
+from dataio_prepare import dataio_prepare
+from prepare_SLURP import prepare_SLURP_2
+from hyperpyyaml import load_hyperpyyaml
+from speechbrain.utils.distributed import run_on_main
 
 
-# TODO: To config
-show_results_every=100
-# tokenizer=None
-# global id_to_file # ={}
-
-# Define training procedure
-class SLU(sb.Brain):
-
-    def __init__(
-        self,
-        *args,
-        **kwargs
-    ):
-        super().__init__(*args, **kwargs)
+class SLUDirectTrans(sb.Brain):
+    def __init__(self, *args, **kwargs):
+        super(SLUDirectTrans, self).__init__(*args, **kwargs)
+        # assert [
+        #             'Transformer',
+        #             'asr_model',
+        #             'seq_lin',
+        #             'log_softmax',
+        #             'valid_search',
+        #             'test_search',
+        #             'seq_cost',
+        #             'tokenizer',
+        #             'output_folder',
+        #             'cer_computer',
+        #             'error_rate_computer',
+        #             'epoch_counter',
+        #             'train_logger',
+        #             'wer_file',
+        #         ] in self.hparams.keys()
 
     def compute_forward(self, batch, stage):
-        """Forward computations from the waveform batches to the output probabilities."""
+        """
+        Forward computations from the waveform batches to the output probabilities.
+        """
         batch = batch.to(self.device)
         wavs, wav_lens = batch.sig
         tokens_bos, tokens_bos_lens = batch.tokens_bos
+        tokens_eos, tokens_eos_lens = batch.tokens_eos
 
-        # NOTE: WAV AUG HERE!!!!!!!!!!!!!!!!!
         # Add augmentation if specified
         if stage == sb.Stage.TRAIN:
             # Default: add noise
@@ -63,33 +54,37 @@ class SLU(sb.Brain):
                 wavs = torch.cat([wavs, wavs_noise], dim=0)
                 wav_lens = torch.cat([wav_lens, wav_lens])
                 tokens_bos = torch.cat([tokens_bos, tokens_bos], dim=0)
-                # tokens_bos_lens = torch.cat([tokens_bos_lens, tokens_bos_lens])
+                tokens_bos_lens = torch.cat([tokens_bos_lens, tokens_bos_lens])
+                tokens_eos = torch.cat([tokens_eos, tokens_eos], dim=0)
+                tokens_eos_lens = torch.cat([tokens_eos_lens, tokens_eos_lens])
             if hasattr(self.hparams, "augmentation"):
                 wavs = self.hparams.augmentation(wavs, wav_lens)
 
         # ASR encoder forward pass
         with torch.no_grad():
-            ASR_encoder_out = self.hparams.asr_model.encode_batch(
+            ASR_enc_out = self.hparams.asr_model.encode_batch(
                 wavs.detach(), wav_lens
             )
 
         # SLU forward pass
-        encoder_out = self.hparams.slu_enc(ASR_encoder_out)
-        e_in = self.hparams.output_emb(tokens_bos)
-        h, _ = self.hparams.dec(e_in, encoder_out, wav_lens)
+        tfm_enc_out, tfm_dec_out = self.hparams.Transformer(
+            ASR_enc_out, tokens_eos
+        )
 
         # Output layer for seq2seq log-probabilities
-        logits = self.hparams.seq_lin(h)
+        logits = self.hparams.seq_lin(tfm_dec_out)
         p_seq = self.hparams.log_softmax(logits)
 
         # Compute outputs
+        searcher = self.hparams.test_search if stage == sb.Stage.TEST else self.hparams.valid_search
         if (
                 stage == sb.Stage.TRAIN
                 and self.batch_count % show_results_every != 0
         ):
             return p_seq, wav_lens
         else:
-            p_tokens, scores = self.hparams.beam_searcher(encoder_out, wav_lens)
+            # tfm_enc_out or ASR_enc_out
+            p_tokens, scores = searcher(tfm_enc_out, wav_lens)
             return p_seq, wav_lens, p_tokens
 
     def compute_objectives(self, predictions, batch, stage):
@@ -175,15 +170,19 @@ class SLU(sb.Brain):
         return loss
 
     def log_outputs(self, predicted_semantics, target_semantics):
-        """ TODO: log these to a file instead of stdout """
+        """
+        TODO: log these to a file instead of stdout
+        """
         for i in range(len(target_semantics)):
-            print("")
-            print(" ".join(predicted_semantics[i]).replace("|", ","))
-            print(" ".join(target_semantics[i]).replace("|", ","))
-            print("")
-            # print one
-            break
-        pass
+            try:
+                print("")
+                print(" ".join(predicted_semantics[i]).replace("|", ","))
+                print(" ".join(target_semantics[i]).replace("|", ","))
+                print("")
+                # print one
+                break
+            except Exception:
+                print(f"Error: SLU.log_outputs: predicted_semantics_len={len(predicted_semantics)}, id={i}, value={predicted_semantics[i]}")
 
     def fit_batch(self, batch):
         """Train the parameters given a single batch in input"""
@@ -242,90 +241,25 @@ class SLU(sb.Brain):
                 self.wer_metric.write_stats(w)
 
 
-class TransformerSLU(sb.Brain):
-    def compute_forward(self, batch, stage):
-        """Forward computations from the waveform batches to the output probabilities."""
-        batch = batch.to(self.device)
-        wavs, wav_lens = batch.sig
-        tokens_bos, tokens_bos_lens = batch.tokens_bos
-
-        # NOTE: WAV AUG HERE!!!!!!!!!!!!!!!!!
-        # Add augmentation if specified
-        if stage == sb.Stage.TRAIN:
-            # Default: add noise
-            if hasattr(self.hparams, "env_corrupt"):
-                wavs_noise = self.hparams.env_corrupt(wavs, wav_lens)
-                wavs = torch.cat([wavs, wavs_noise], dim=0)
-                wav_lens = torch.cat([wav_lens, wav_lens])
-                tokens_bos = torch.cat([tokens_bos, tokens_bos], dim=0)
-                # tokens_bos_lens = torch.cat([tokens_bos_lens, tokens_bos_lens])
-            if hasattr(self.hparams, "augmentation"):
-                wavs = self.hparams.augmentation(wavs, wav_lens)
-
-        # ASR encoder forward pass
-        with torch.no_grad():
-            ASR_encoder_out = self.hparams.asr_model.encode_batch(
-                wavs.detach(), wav_lens
-            )
-
-        # SLU forward pass
-        # encoder_out = self.hparams.slu_enc(ASR_encoder_out)
-        # e_in = self.hparams.output_emb(tokens_bos)
-        # h, _ = self.hparams.dec(e_in, encoder_out, wav_lens)
-        src = self.modules.CNN(ASR_encoder_out)
-        enc_out, pred = self.modules.Transformer(
-            src, tokens_bos, wav_lens, pad_idx=self.hparams.pad_index
-        )
-
-        # output layer for ctc log-probabilities
-        logits = self.modules.ctc_lin(enc_out)
-        p_ctc = self.hparams.log_softmax(logits)
-
-        # Output layer for seq2seq log-probabilities
-        logits = self.hparams.seq_lin(h)
-        p_seq = self.hparams.log_softmax(logits)
-
-        # Compute outputs
-        if (
-                stage == sb.Stage.TRAIN
-                and self.batch_count % show_results_every != 0
-        ):
-            return p_seq, wav_lens
-        else:
-            p_tokens, scores = self.hparams.beam_searcher(encoder_out, wav_lens)
-            return p_seq, wav_lens, p_tokens
-
-
-def print_slu_details(slu: SLU):
-    def show_module_list_parameters(module_list):
-        n_params = 0
-        for attr_name in module_list:
-            module = module_list[attr_name]
-            print(f"> {attr_name}: {module._get_name()}")
-            for name, param in module.named_parameters():
-                print(f"\t{name.ljust(40)}: {param.shape}")
-                n_params = n_params + torch.numel(param)
-        return n_params
-
-    print("ASR Encoder: ")
-    n_asr_enc_params = show_module_list_parameters(slu.hparams.asr_model.mods)
-    print("==========")
-    print("Trainable:")
-    n_trainable_params = show_module_list_parameters(slu.hparams.modules)
-    print("==========")
-    print(f"Pretrained ASR Encoder parameters: {n_asr_enc_params}")
-    print(f"Trainable parameters: {n_trainable_params}")
-
-
 if __name__ == "__main__":
-    show_results_every = 100  # plots results every N iterations
-    # hparams_file = f"./results/better_tokenizer/1986/hyperparams.yaml"
-    # overrides = {}
+    show_results_every = 2  # plots results every N iterations
+
+    # load hparams result
+    # hparams_file = f"/home/kryo/Desktop/FinalProject_TrainingLab914/recipes/direct/hparams/train_v1f.yaml"
+    # overrides = {
+    #     "working_dir": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/working",
+    #     "data_folder": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/slurp/audio",
+    #     "asr_model": {
+    #         "run_opts": {
+    #             "device": "cuda" if torch.cuda.is_available() else "cpu"
+    #         }
+    #     },
+    #     "skip_prep": True,
+    # }
     # run_opts = {
     #     "device": "cuda" if torch.cuda.is_available() else "cpu"
     # }
-
-    # Load hyperparameters file with command-line overrides
+    # # Load hyperparameters file with command-line overrides
     hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
 
     with open(hparams_file) as fin:
@@ -366,19 +300,19 @@ if __name__ == "__main__":
     hparams["checkpointer"].recover_if_possible()
 
     # # Brain class initialization
-    slu_brain = SLU(
+    slu_brain = SLUDirectTrans(
         modules=hparams["modules"],
         opt_class=hparams["opt_class"],
         hparams=hparams,
         run_opts=run_opts,
         checkpointer=hparams["checkpointer"],
     )
-    print_slu_details(slu_brain)
+    # print_slu_details(slu_brain)
 
     # # adding objects to trainer:
     slu_brain.tokenizer = tokenizer
 
-    # # Training
+    # Training
     slu_brain.fit(
         slu_brain.hparams.epoch_counter,
         train_set,
@@ -387,7 +321,7 @@ if __name__ == "__main__":
         valid_loader_kwargs=hparams["dataloader_opts"],
     )
 
-    # # Test
+    # Test
     print("Creating id_to_file mapping...")
     id_to_file = {}
     df = pd.read_csv(hparams["csv_test"])
