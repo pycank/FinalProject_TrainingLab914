@@ -1,12 +1,30 @@
 import os
 import subprocess
 
+
+def kwarg_list_to_dict(kwargs):
+    d = {}
+    for arg in kwargs:
+        if arg.startswith("--"):
+            l = arg[len("--"):].split('=')
+            if len(l) > 2:
+                raise Exception(f"Parse kwarg failed: len >= 2 {l}")
+            elif len(l) == 2:
+                if l[1].isnumeric():
+                    d[l[0]] = int(l[1])
+                else:
+                    d[l[0]] = l[1]
+            else:
+                d[l[0]] = None
+        else:
+            raise Exception(f"Unsupported arg: {arg}")
+    return d
+
+
 if __name__ == "__main__":
     import argparse
     import sys
     arg_list = sys.argv[1:]
-    # arg_list = ['v1'
-    # , '--working_dir=.', '--a=b', '--c=d']
     parser = argparse.ArgumentParser(description="Run a SpeechBrain experiment")
     parser.add_argument(
         "model_name",
@@ -15,36 +33,12 @@ if __name__ == "__main__":
         # required=False,
         help="Model name in config file",
     )
-    # parser.add_argument(
-    #     "--working_dir",
-    #     type=str,
-    #     # required=False,
-    #     help="Set working directory",
-    # )
+
     # Accept extra args to override yaml
     cli_run_opts, cli_overrides = parser.parse_known_args(arg_list)
-    # print(cli_run_opts)
-    # print(cli_overrides)
     version_name = cli_run_opts.model_name
-    def kwarg_list_to_dict(kwargs):
-        d = {}
-        for arg in kwargs:
-            if arg.startswith("--"):
-                l = arg[len("--"):].split('=')
-                if len(l) > 2:
-                    raise Exception(f"Parse kwarg failed: len >= 2 {l}")
-                elif len(l) == 2:
-                    if l[1].isnumeric():
-                        d[l[0]] = int(l[1])
-                    else:
-                        d[l[0]] = l[1]
-                else:
-                    d[l[0]] = None
-            else:
-                raise Exception(f"Unsupported arg: {arg}")
-        return d
+
     cli_overrides = kwarg_list_to_dict(cli_overrides)
-    # print(cli_overrides)
 
     import os
     import json
@@ -84,22 +78,6 @@ if __name__ == "__main__":
         overrides = {**cli_overrides, **overrides}
 
     working_dir = hparams['working_dir']
-    # if cli_run_opts.working_dir:
-    #     print(f"WORKING_DIR OVERRIDE:")
-    #     working_dir = cli_run_opts.working_dir
-    #     overrides['working_dir'] = working_dir
-    #     print(f"working_dir: {working_dir}")
-    # if not os.path.isdir(working_dir):
-    #     print(f"Working dir not exists: {working_dir} .. creating")
-    #     os.makedirs(working_dir)
-
-    # print("===================")
-    # print("DOWNLOAD PREPARED CSV:")
-    # import os
-    # subprocess.call([
-    #     os.path.join(cur_file_dir, './download_prepared_csv.sh'),
-    #     overrides["output_folder"]
-    # ])
 
     print("===================")
     print(f"CD working dir: {working_dir}")

@@ -149,7 +149,9 @@ class SLUDirectTrans(sb.Brain):
                                     "|", ","
                                 )
                             )
-                            if not isinstance(_dict, dict):
+                            if not isinstance(_dict, dict) \
+                                    or ["scenario", "action", "entities"] not in _dict \
+                                    or all([["type", "filler"] in ent for ent in _dict["entities"]]):
                                 _dict = {
                                     "scenario": "none",
                                     "action": "none",
