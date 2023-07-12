@@ -81,7 +81,7 @@ epoch_counter: !new:speechbrain.utils.epoch_loop.EpochCounter
 
 # Transformer
 d_model: 512
-nhead: 1
+nhead: 2
 num_encoder_layers: 1
 num_decoder_layers: 3
 d_ffn: 1024
@@ -109,6 +109,7 @@ Transformer: !new:speechbrain.lobes.models.transformer.TransformerASR.Transforme
     dropout: !ref <transformer_dropout>
     activation: !ref <activation>
     normalize_before: True
+    encoder_module: conformer
 
 #slu_enc: !new:speechbrain.nnet.containers.Sequential
 #  input_shape: [null, null, !ref <ASR_encoder_dim>]
