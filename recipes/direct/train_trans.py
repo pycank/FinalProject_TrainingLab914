@@ -149,9 +149,14 @@ class SLUDirectTrans(sb.Brain):
                                     "|", ","
                                 )
                             )
-                            if not isinstance(_dict, dict) \
-                                    or ["scenario", "action", "entities"] not in _dict \
-                                    or all([["type", "filler"] in ent for ent in _dict["entities"]]):
+                            try:
+                                is_valid_semantic = isinstance(_dict, dict) \
+                                    and ["scenario", "action", "entities"] not in list(_dict.keys()) \
+                                    and all([['type', 'filler'] == list(arr.keys()) for arr in _dict["entities"]])
+                            except Exception as e:
+                                print(e)
+                                is_valid_semantic = False
+                            if not is_valid_semantic:
                                 _dict = {
                                     "scenario": "none",
                                     "action": "none",
@@ -243,6 +248,27 @@ class SLUDirectTrans(sb.Brain):
                 self.wer_metric.write_stats(w)
 
 
+def print_slu_details(slu: SLUDirectTrans):
+    def show_module_list_parameters(module_list):
+        n_params = 0
+        for attr_name in module_list:
+            module = module_list[attr_name]
+            print(f"> {attr_name}: {module._get_name()}")
+            for name, param in module.named_parameters():
+                print(f"\t{name.ljust(40)}: {param.shape}")
+                n_params = n_params + torch.numel(param)
+        return n_params
+
+    print("ASR Encoder: ")
+    n_asr_enc_params = show_module_list_parameters(slu.hparams.asr_model.mods)
+    print("==========")
+    print("Trainable:")
+    n_trainable_params = show_module_list_parameters(slu.hparams.modules)
+    print("==========")
+    print(f"Pretrained ASR Encoder parameters: {n_asr_enc_params}")
+    print(f"Trainable parameters: {n_trainable_params}")
+
+
 if __name__ == "__main__":
     show_results_every = 100  # plots results every N iterations
 
@@ -261,7 +287,7 @@ if __name__ == "__main__":
     # run_opts = {
     #     "device": "cuda" if torch.cuda.is_available() else "cpu"
     # }
-    # # Load hyperparameters file with command-line overrides
+    # Load hyperparameters file with command-line overrides
     hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
 
     with open(hparams_file) as fin:
@@ -309,7 +335,7 @@ if __name__ == "__main__":
         run_opts=run_opts,
         checkpointer=hparams["checkpointer"],
     )
-    # print_slu_details(slu_brain)
+    print_slu_details(slu_brain)
 
     # # adding objects to trainer:
     slu_brain.tokenizer = tokenizer
@@ -324,6 +350,7 @@ if __name__ == "__main__":
     )
 
     # Test
+    print("TESTING...")
     print("Creating id_to_file mapping...")
     id_to_file = {}
     df = pd.read_csv(hparams["csv_test"])
