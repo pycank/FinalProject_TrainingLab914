@@ -24,8 +24,8 @@ run_opts = {
 #         "env_corrupt",
 #     ]
 #
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
+#     def __init__.py(self, *args, **kwargs):
+#         super().__init__.py(*args, **kwargs)
 #         pass
 #
 #     def encode_file(self, path):

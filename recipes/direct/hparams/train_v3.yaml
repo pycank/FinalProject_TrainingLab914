@@ -6,21 +6,17 @@
 # losses: NLL
 # Training: SLURP
 # Authors:  Loren Lugosch, Mirco Ravanelli 2020
+#
 # Edit:
-#   V1: ...
-#   V2:
-#     - batch_size from 16 to 12
-#     - dec.rnn_type: gru to lstm
-#     - dec.attn_type: keyvalue to content
-#     - dec.dropout from 0.0 to 0.1
-#     - try add checkpointer.recoverables.train_logger !!!ERROR DEPRECATED
-#     - slu_enc.lstm: !new:speechbrain.nnet.RNN.QuasiRNN  # from LSTM
+#   V3: Using TransformerDecoder
+# Score:
 # ############################################################################
 
 # Seed needs to be set at top of yaml, before objects with parameters are made
-seed: 1986
+seed: 2006
 __set_seed: !apply:torch.manual_seed [!ref <seed>]
 # ADD: prepared folder from prev step
+working_dir: !PLACEHOLDER
 prepared_folder: results/prepared
 output_folder: !ref results/better_tokenizer/<seed>
 save_folder: !ref <output_folder>/save
@@ -30,15 +26,15 @@ log_folder: !ref <output_folder>/log
 # Data files
 # The SLURP dataset will be automatically downloaded in the specified data_folder
 # data_folder: !PLACEHOLDER # e.g, /localscratch/SLURP
-data_folder: /slurp/audio
+data_folder: /audio
 data_folder_rirs: !ref <data_folder>
 train_splits: ["train_synthetic", "train_real"]
 tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
 skip_prep: False
 # original csv
-o_csv_train: !ref <prepared_folder>/train-type=direct.csv
-o_csv_valid: !ref <prepared_folder>/devel-type=direct.csv
-o_csv_test: !ref <prepared_folder>/test-type=direct.csv
+o_csv_train: !ref <output_folder>/train-type=direct.csv
+o_csv_valid: !ref <output_folder>/devel-type=direct.csv
+o_csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Data sampling strategy
 sampling:
@@ -52,34 +48,17 @@ sampling:
       by: intent
 
 # Load csv
-csv_train: !ref <prepared_folder>/train-type=direct-sample=0.2.csv
-csv_valid: !ref <prepared_folder>/devel-type=direct-sample=0.2.csv
-csv_test: !ref <prepared_folder>/test-type=direct.csv
+csv_train: !ref <output_folder>/train-type=direct-sample=0.2.csv
+csv_valid: !ref <output_folder>/devel-type=direct-sample=0.2.csv
+csv_test: !ref <output_folder>/test-type=direct.csv
 
 # Training parameters
 number_of_epochs: 20
-batch_size: 16  # DEFAULT 16
+batch_size: 16
 lr: 0.0003
 # token_type: unigram # ["unigram", "bpe", "char"]
 sorting: random
 ckpt_interval_minutes: 15 # save checkpoint every N min
-
-# Model parameters
-sample_rate: 16000
-emb_size: 128
-dec_neurons: 512
-output_neurons: 58 # index(eos/bos) = 0
-ASR_encoder_dim: 512
-encoder_dim: 256
-
-# Decoding parameters
-bos_index: 0
-eos_index: 0
-min_decode_ratio: 0.0
-max_decode_ratio: 10.0
-slu_beam_size: 80
-eos_threshold: 1.5
-temperature: 1.25
 
 dataloader_opts:
   batch_size: !ref <batch_size>
@@ -88,14 +67,46 @@ dataloader_opts:
 epoch_counter: !new:speechbrain.utils.epoch_loop.EpochCounter
   limit: !ref <number_of_epochs>
 
-# Models
+####################### Model parameters ###########################
+sample_rate: 16000
+emb_size: 128
+dec_neurons: 512
+output_neurons: 58 # index(eos/bos) = 0
+ASR_encoder_dim: 512
+encoder_dim: 256
+
+# Decoding parameters
+bos_index: 1
+eos_index: 2 # 0
+min_decode_ratio: 0.0
+max_decode_ratio: 10.0
+slu_beam_size: 80
+eos_threshold: 1.5
+temperature: 1.25
+# new:
+ctc_weight_decode: 0.40
+
+
+# Transformer
+d_model: 256
+nhead: 2
+# 4
+num_encoder_layers: 2
+num_decoder_layers: 6
+d_ffn: 1024
+# 2048
+transformer_dropout: 0.1
+activation: !name:torch.nn.GELU
+#output_neurons: 5000
+
+############################## models ################################
 asr_model: !apply:speechbrain.pretrained.EncoderDecoderASR.from_hparams
   source: speechbrain/asr-crdnn-rnnlm-librispeech
   run_opts: {"device":"cuda:0"}
 
 slu_enc: !new:speechbrain.nnet.containers.Sequential
   input_shape: [null, null, !ref <ASR_encoder_dim>]
-  lstm: !new:speechbrain.nnet.RNN.LSTM  # DEFAULT LSTM
+  lstm: !new:speechbrain.nnet.RNN.LSTM
     input_size: !ref <ASR_encoder_dim>
     bidirectional: True
     hidden_size: !ref <encoder_dim>
@@ -108,17 +119,32 @@ output_emb: !new:speechbrain.nnet.embedding.Embedding
   num_embeddings: !ref <output_neurons>
   embedding_dim: !ref <emb_size>
 
-dec: !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
-  enc_dim: !ref <encoder_dim>
-  input_size: !ref <emb_size>
-  rnn_type: lstm        # gru
-  attn_type: content    # keyvalue
-  hidden_size: !ref <dec_neurons>
-  attn_dim: 1024
-  num_layers: 3
-  scaling: 1.0
-  dropout: 0.1         # DEFAULT 0.0
+#dec: !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
+#  enc_dim: !ref <encoder_dim>
+#  input_size: !ref <emb_size>
+#  rnn_type: gru
+#  attn_type: keyvalue
+#  hidden_size: !ref <dec_neurons>
+#  attn_dim: 512
+#  num_layers: 3
+#  scaling: 1.0
+#  dropout: 0.0
 
+ctc_lin: !new:speechbrain.nnet.linear.Linear
+    input_size: !ref <d_model>
+    n_neurons: !ref <output_neurons>
+
+Transformer: !new:speechbrain.lobes.models.transformer.TransformerASR.TransformerASR # yamllint disable-line rule:line-length
+    input_size: 512 # 1024
+    tgt_vocab: !ref <output_neurons>
+    d_model: !ref <d_model>
+    nhead: !ref <nhead>
+    num_encoder_layers: !ref <num_encoder_layers>
+    num_decoder_layers: !ref <num_decoder_layers>
+    d_ffn: !ref <d_ffn>
+    dropout: !ref <transformer_dropout>
+    activation: !ref <activation>
+    normalize_before: True
 
 seq_lin: !new:speechbrain.nnet.linear.Linear
   input_size: !ref <dec_neurons>
@@ -135,13 +161,14 @@ env_corrupt: !new:speechbrain.lobes.augment.EnvCorrupt
 modules:
   slu_enc: !ref <slu_enc>
   output_emb: !ref <output_emb>
-  dec: !ref <dec>
+  Transformer: !ref <Transformer>
+  ctc_lin: !ref <ctc_lin>
   seq_lin: !ref <seq_lin>
   env_corrupt: !ref <env_corrupt>
 
 model: !new:torch.nn.ModuleList
   - [!ref <slu_enc>, !ref <output_emb>,
-     !ref <dec>, !ref <seq_lin>]
+     !ref <Transformer>, !ref <seq_lin>, !ref <ctc_lin>]
 
 tokenizer: !new:sentencepiece.SentencePieceProcessor
 
@@ -152,20 +179,32 @@ pretrainer: !new:speechbrain.utils.parameter_transfer.Pretrainer
   paths:
     tokenizer: !ref <tokenizer_file>
 
-beam_searcher: !new:speechbrain.decoders.S2SRNNBeamSearcher
-  embedding: !ref <output_emb>
-  decoder: !ref <dec>
-  linear: !ref <seq_lin>
+#beam_searcher: !new:speechbrain.decoders.S2SRNNBeamSearcher
+#  embedding: !ref <output_emb>
+#  decoder: !ref <dec>
+#  linear: !ref <seq_lin>
+# bos_index: !ref <bos_index>
+# eos_index: !ref <eos_index>
+# min_decode_ratio: !ref <min_decode_ratio>
+# max_decode_ratio: !ref <max_decode_ratio>
+#  beam_size: !ref <slu_beam_size>
+#  eos_threshold: !ref <eos_threshold>
+#  temperature: !ref <temperature>
+#  using_max_attn_shift: False
+#  max_attn_shift: 30
+#  coverage_penalty: 0.
+beam_searcher: !new:speechbrain.decoders.S2STransformerBeamSearch
+  modules: [!ref <Transformer>, !ref <seq_lin>, !ref <ctc_lin>]
   bos_index: !ref <bos_index>
   eos_index: !ref <eos_index>
+#  blank_index: !ref <blank_index>
   min_decode_ratio: !ref <min_decode_ratio>
   max_decode_ratio: !ref <max_decode_ratio>
   beam_size: !ref <slu_beam_size>
-  eos_threshold: !ref <eos_threshold>
-  temperature: !ref <temperature>
-  using_max_attn_shift: False
-  max_attn_shift: 30
-  coverage_penalty: 0.
+  # <test_beam_size>
+  ctc_weight: !ref <ctc_weight_decode>
+  using_eos_threshold: False
+  length_normalization: True
 
 opt_class: !name:torch.optim.Adam
   lr: !ref <lr>
@@ -182,9 +221,6 @@ checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
     model: !ref <model>
     scheduler: !ref <lr_annealing>
     counter: !ref <epoch_counter>
-    # Error: Don't know how to save <class 'speechbrain.utils.train_logger.TensorboardLogger'>.
-    #        Register default hook or add custom hook for this object.
-    # train_logger: !ref <train_logger> # v2
 
 augmentation: !new:speechbrain.lobes.augment.TimeDomainSpecAugment
   sample_rate: !ref <sample_rate>
@@ -196,11 +232,12 @@ log_softmax: !new:speechbrain.nnet.activations.Softmax
 seq_cost: !name:speechbrain.nnet.losses.nll_loss
   label_smoothing: 0.1
 
-# DEFAULT: train_logger: !new:speechbrain.utils.train_logger.FileTrainLogger
-#    save_file: !ref <train_log>
+# DEFAULT:
+train_logger: !new:speechbrain.utils.train_logger.FileTrainLogger
+    save_file: !ref <train_log>
 # Use TensorboardLogger instead of FileTrainLogger
-train_logger: !new:speechbrain.utils.train_logger.TensorboardLogger
-  save_dir: !ref <log_folder>
+#train_logger: !new:speechbrain.utils.train_logger.TensorboardLogger
+#  save_dir: !ref <log_folder>
 
 error_rate_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
 

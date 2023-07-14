@@ -1,0 +1,28 @@
+# Turning tokenizer
+
+# Seed needs to be set at top of yaml, before objects with parameters are made
+seed: 1986
+__set_seed: !apply:torch.manual_seed [!ref <seed>]
+
+working_dir: /content # !PLACEHOLDER
+output_folder: !ref <working_dir>/out  # Include csv files
+save_folder: !ref <output_folder>/save # Tokenizer output dir
+
+tokenizer_folder: !ref <save_folder>/SLURP_tokenizer
+
+csv_path: !ref <output_folder>/train-type=direct.csv
+col_name: semantics
+
+# ================================================
+# Tokenizer
+# ================================================
+vocab_size: 120
+type: bpe # [unigram, bpe, char]
+version: 1
+user_defined_symbols: []
+bos_index: -1  # -1 is not use this
+eos_index: -1  # -> check with <unk>
+
+# debug
+print_vocab: True
+try_encode_text: 'connection'

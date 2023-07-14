@@ -1,5 +1,6 @@
 import speechbrain as sb
 import torch
+import os
 
 
 def dataio_prepare(hparams):
@@ -9,7 +10,10 @@ def dataio_prepare(hparams):
     data_folder = hparams["data_folder"]
 
     train_data = sb.dataio.dataset.DynamicItemDataset.from_csv(
-        csv_path=hparams["csv_train"], replacements={"data_root": data_folder},
+        csv_path=hparams["csv_train"],
+        replacements={
+            "data_root": data_folder,
+        },
     )
 
     if hparams["sorting"] == "ascending":

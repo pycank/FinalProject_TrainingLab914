@@ -1,0 +1,160 @@
+# List of models configs
+
+project_dir: .. # relative path to source code dir (from exec loader.py file)
+working_dir: ../working # root dir, store dataset, checkpoints, ...
+
+models:
+  v1:
+    description: speech brain direct model with default config
+    config_path: !ref <project_dir>/recipes/direct/hparams/train.yaml
+    config_overrides:
+#      debug:
+#      debug_batches: !DEBUG_BATCHES
+#      debug_epochs: !DEBUG_EPOCHS
+#      debug_persistently
+#      log_config: LOG_CONFIG
+#      local_rank LOCAL_RANK
+#      device: 'cuda' # DEVICE
+#      data_parallel_backend
+#      distributed_launch
+#      distributed_backend DISTRIBUTED_BACKEND
+#      find_unused_parameters
+#      jit_module_keys [JIT_MODULE_KEYS ...]] [--auto_mix_prec]
+#
+      working_dir: !ref <working_dir>
+      seed: 1986
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out
+
+    training_file: !ref <project_dir>/recipes/direct/train.py
+#    zenodo_token: tle0xQ4kAHijAIerSg25IfF4V43p97eBpijDvV4bnUNrMQ26LapszNTEOi9g
+
+  v1n:
+    description: v1 without data augmentation
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1n.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 1987
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1l:
+    description: v1 without data augmentation
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1l.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 1999
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1l2:
+    description: v1 without data augmentation
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1l2.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2001
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1t:
+    description: v1 with tokenization unigram 108
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1t.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2002
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1t2:
+    description: v1 with tokenization unigram t108u
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1t2.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2004
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1t3:
+    description: v1 with tokenization unigram t256u
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1t3.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2005
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1m:
+    description: v1 without data augmentation
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1m.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2003
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v1f:
+    description: v1 without data augmentation
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v1f.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2005
+      data_folder: !ref <working_dir>/slurp
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train_trans.py
+
+  v3:
+    description: using transformer decoder
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v3.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2006
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train.py
+
+  v4:
+    description: using wab2vec pretrained
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v4.yaml
+    config_overrides:
+      seed: 2016
+      working_dir: !ref <working_dir>
+      data_folder: !ref <working_dir>/slurp
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train_wav2vec.py
+
+  v4t3:
+    description: using wab2vec pretrained
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v4t3.yaml
+    config_overrides:
+      seed: 2017
+      working_dir: !ref <working_dir>
+      data_folder: !ref <working_dir>/slurp
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train_wav2vec.py
+
+  v5:
+    description: v4 with transformer
+    config_path: !ref <project_dir>/recipes/direct/hparams/train_v5.yaml
+    config_overrides:
+      working_dir: !ref <working_dir>
+      seed: 2003
+      data_folder: !ref <working_dir>/slurp
+      prepared_folder: !ref <working_dir>/prepared
+      output_folder: !ref <working_dir>/out/
+    training_file: !ref <project_dir>/recipes/direct/train_wav2vec_trans.py

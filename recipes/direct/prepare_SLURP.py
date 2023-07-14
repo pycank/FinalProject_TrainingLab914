@@ -11,7 +11,7 @@ from tqdm import tqdm
 import jsonlines
 import json
 from hyperpyyaml import load_hyperpyyaml
-
+from preprocessing.stratified_sampling import stratified_sampling as ss
 
 def prepare_SLURP_2(
     data_folder, save_folder, slu_type, train_splits, skip_prep=False, sampling=None,
@@ -45,7 +45,15 @@ def prepare_SLURP_2(
         zip_location = os.path.join(data_folder, "slurp_synth.tar.gz")
         if not os.path.exists(zip_location):
             # Download the zip file from drive faster than zenodo
-            gdown.download(id="15EZv2xJT4OrqPgbMT_xIOQbKrlYnBukt", output=zip_location, quiet=False, fuzzy=True)
+            g_ids = [
+                "15EZv2xJT4OrqPgbMT_xIOQbKrlYnBukt",
+                "14Dptg-EFHx1SSznW7O6cDtHYTJkbrhAv",
+                "1IX6l0aUIHC4L6qd8NafFx0_FXgp40Fvz"
+            ]
+            for id in g_ids:
+                f_name = gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
+                if f_name:
+                    break
             url = "https://zenodo.org/record/4274930/files/slurp_synth.tar.gz?download=1"
             download_file(url, zip_location, unpack=True)
         else:
@@ -57,8 +65,15 @@ def prepare_SLURP_2(
         zip_location = os.path.join(data_folder, "slurp_real.tar.gz")
         if not os.path.exists(zip_location):
             # Download the zip file from drive faster than zenodo
-            gdown.download(id="14kPQCaobprOnArK-VofYZyhyLnlXeFt7", output=zip_location, quiet=False, fuzzy=True)
-
+            g_ids = [
+                "14kPQCaobprOnArK-VofYZyhyLnlXeFt7",
+                "1TXWQCmODeRiGkcFdj5Inv6J4pJlt7s8f",
+                "1cMrwO-TRDVcRFVpuRY2LJ-TRHsXtD2KK"
+            ]
+            for id in g_ids:
+                f_name = gdown.download(id=id, output=zip_location, quiet=False, fuzzy=True)
+                if f_name:
+                    break
             url = "https://zenodo.org/record/4274930/files/slurp_real.tar.gz?download=1"
             download_file(url, zip_location, unpack=True)
         else:
@@ -204,11 +219,13 @@ def prepare_SLURP_2(
             match strategy:
                 case "stratified_sampling":
                     cfg = strategies['stratified_sampling']
+                    assert cfg
+
                     for path in tqdm(file_paths):
                         sampled_file_path = path.replace(".csv", f"-sample={cfg['selection_rate']}.csv")
                         print(f"Sampling: {sampled_file_path}")
                         df = pd.read_csv(path)
-                        sampled_df = stratified_sampling(
+                        sampled_df = ss(
                             cfg['selection_rate'],
                             X=df,
                             by=cfg['by']
@@ -231,7 +248,6 @@ if __name__ == "__main__":
         hparams = load_hyperpyyaml(fin, overrides)
         print(json.dumps(hparams, indent=2))
     
-    from stratified_sampling import stratified_sampling
 
     run_on_main(
         prepare_SLURP_2,

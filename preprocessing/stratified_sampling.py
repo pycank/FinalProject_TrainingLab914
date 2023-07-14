@@ -1,14 +1,13 @@
-from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.model_selection import train_test_split
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 
 def stratified_sampling(
-    selection_rate,
-    X,
-    y=None,
-    by=None,
-    keep_thr=2
+        selection_rate,
+        X,
+        y=None,
+        by=None,
+        keep_thr=2
 ):
     """
     Stratified sampling
@@ -18,13 +17,13 @@ def stratified_sampling(
     selection_rate: float
         Probability of one sample to be selected
     X: pd.DataFrame
-        Dataset
+        Dataset csv file
     y: list or None
         Stratify and labels
     by: str
         Key or list of stratify key
     keep_thr: str
-        Keep sample if lable is less than or equal to keep threshold
+        Keeps sample if label count is less than or equal to keep a threshold
     """
     if y is None:
         if isinstance(by, str):
@@ -35,9 +34,9 @@ def stratified_sampling(
             raise Exception("y and by is not defined!")
 
     count_df = y.value_counts().rename_axis('unique_values').reset_index(name='counts')
-    keep_df = X[y.isin(count_df[count_df['counts']<=keep_thr]['unique_values'])]
-    to_split_X_df = X[y.isin(count_df[count_df['counts']>keep_thr]['unique_values'])]
-    to_split_y_df = y[y.isin(count_df[count_df['counts']>keep_thr]['unique_values'])]
+    keep_df = X[y.isin(count_df[count_df['counts'] <= keep_thr]['unique_values'])]
+    to_split_X_df = X[y.isin(count_df[count_df['counts'] > keep_thr]['unique_values'])]
+    to_split_y_df = y[y.isin(count_df[count_df['counts'] > keep_thr]['unique_values'])]
 
     selection_rate = selection_rate - len(keep_df) / len(y)
 
@@ -55,8 +54,3 @@ def stratified_sampling(
     print(f"  Total: \t{len(X_total)}")
 
     return X_total
-
-
-if __name__ == "__main__":
-    df = pd.read_csv("../datasets/slurp/")
-    # stratified_sampling()
