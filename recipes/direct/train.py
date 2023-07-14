@@ -320,13 +320,25 @@ def print_slu_details(slu: SLU):
 if __name__ == "__main__":
     show_results_every = 100  # plots results every N iterations
     # hparams_file = f"./results/better_tokenizer/1986/hyperparams.yaml"
-    # overrides = {}
-    # run_opts = {
-    #     "device": "cuda" if torch.cuda.is_available() else "cpu"
-    # }
 
-    # Load hyperparameters file with command-line overrides
-    hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
+    # load hparams result
+    hparams_file = f"/home/kryo/Desktop/FinalProject_TrainingLab914/recipes/direct/hparams/train.yaml"
+    overrides = {
+        "working_dir": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/working",
+        "data_folder": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/slurp/audio",
+        "output_folder": "/home/kryo/Desktop/FinalProject_TrainingLab914/datasets/working/out",
+        "asr_model": {
+            "run_opts": {
+                "device": "cuda" if torch.cuda.is_available() else "cpu"
+            }
+        },
+        "skip_prep": True,
+    }
+    run_opts = {
+        "device": "cuda" if torch.cuda.is_available() else "cpu"
+    }
+    # # Load hyperparameters file with command-line overrides
+    # hparams_file, run_opts, overrides = sb.parse_arguments(sys.argv[1:])
 
     with open(hparams_file) as fin:
         hparams = load_hyperpyyaml(fin, overrides)

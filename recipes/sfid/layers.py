@@ -73,13 +73,13 @@ class IterModel(nn.Module):
 
 # class BiLSTM(nn.Module):
 #
-#     def __init__(self, vocab_size, embedding_dim, hidden_dim=64):
+#     def __init__.py(self, vocab_size, embedding_dim, hidden_dim=64):
 #         """
 #         :param vocab_size: number of words in the vocabulary
 #         :param embedding_dim: size of the embedding vector
 #         :param hidden_dim: layer size of the bilstm network (size of vector h)
 #         """
-#         super(BiLSTM, self).__init__()
+#         super(BiLSTM, self).__init__.py()
 #         self.hidden_dim = hidden_dim
 #         self.word_embeds = nn.Embedding(vocab_size, embedding_dim, padding_idx=vocab_size-1)
 #         self.lstm = nn.LSTM(embedding_dim, hidden_dim // 2, num_layers=1, bidirectional=True, batch_first=True)
@@ -108,8 +108,8 @@ class IterModel(nn.Module):
 
 
 # class SlotAttention(nn.Module):
-#     def __init__(self, n_features=64):
-#         super(SlotAttention, self).__init__()
+#     def __init__.py(self, n_features=64):
+#         super(SlotAttention, self).__init__.py()
 #         self.attention = nn.Linear(n_features, n_features)
 #
 #     def forward(self, x):
@@ -125,8 +125,8 @@ class IterModel(nn.Module):
 
 
 # class IntentAttention(nn.Module):
-#     def __init__(self, n_features=64):
-#         super(IntentAttention, self).__init__()
+#     def __init__.py(self, n_features=64):
+#         super(IntentAttention, self).__init__.py()
 #         self.attention = nn.Linear(n_features, n_features)
 #
 #     def forward(self, x):
