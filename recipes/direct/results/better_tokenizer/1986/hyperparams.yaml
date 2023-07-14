@@ -1,0 +1,210 @@
+# Generated 2023-07-14 from:
+# /home/kryo/Desktop/FinalProject_TrainingLab914/recipes/direct/hparams/train.yaml
+# yamllint disable
+# ############################################################################
+# Model: Direct SLU
+# Encoder: Pre-trained ASR encoder -> LSTM
+# Decoder: GRU + beamsearch
+# Tokens: BPE with unigram
+# losses: NLL
+# Training: SLURP
+# Authors:  Loren Lugosch, Mirco Ravanelli 2020
+#
+# Edit:
+#   V1:
+#     - Using tensorboard logger
+#     - Add sampling config
+# Score:
+#   SLU_F1:
+#     V1:
+#       - epoch_20: 0.55
+#       - epoch_40: 0.58
+#       - epoch_58: 0.58
+# ############################################################################
+
+# Seed needs to be set at top of yaml, before objects with parameters are made
+seed: 1986
+__set_seed: !apply:torch.manual_seed [1986]
+# ADD: prepared folder from prev step
+working_dir: /home/kryo/Desktop/FinalProject_TrainingLab914/datasets/working
+prepared_folder: results/prepared
+output_folder: results/better_tokenizer/1986
+save_folder: results/better_tokenizer/1986/save
+train_log: results/better_tokenizer/1986/train_log.txt
+log_folder: results/better_tokenizer/1986/log
+
+# Data files
+# The SLURP dataset will be automatically downloaded in the specified data_folder
+# data_folder: !PLACEHOLDER # e.g, /localscratch/SLURP
+data_folder: /home/kryo/Desktop/FinalProject_TrainingLab914/datasets/slurp/audio
+data_folder_rirs: /home/kryo/Desktop/FinalProject_TrainingLab914/datasets/slurp/audio
+train_splits: [train_synthetic, train_real]
+tokenizer_file: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
+skip_prep: true
+# original csv
+o_csv_train: results/better_tokenizer/1986/train-type=direct.csv
+o_csv_valid: results/better_tokenizer/1986/devel-type=direct.csv
+o_csv_test: results/better_tokenizer/1986/test-type=direct.csv
+
+# Data sampling strategy
+sampling:
+  files:
+  - results/better_tokenizer/1986/train-type=direct.csv
+  - results/better_tokenizer/1986/devel-type=direct.csv
+  - results/better_tokenizer/1986/test-type=direct.csv
+  strategies:
+    stratified_sampling:
+      selection_rate: 0.2
+      by: intent
+
+# Load csv
+csv_train: results/better_tokenizer/1986/train-type=direct-sample=0.2.csv
+csv_valid: results/better_tokenizer/1986/devel-type=direct-sample=0.2.csv
+csv_test: results/better_tokenizer/1986/test-type=direct.csv
+
+# Training parameters
+number_of_epochs: 20
+batch_size: 16
+lr: 0.0003
+# token_type: unigram # ["unigram", "bpe", "char"]
+sorting: random
+ckpt_interval_minutes: 15 # save checkpoint every N min
+
+# Model parameters
+sample_rate: 16000
+emb_size: 128
+dec_neurons: 512
+output_neurons: 58 # index(eos/bos) = 0
+ASR_encoder_dim: 512
+encoder_dim: 256
+
+# Decoding parameters
+bos_index: 0
+eos_index: 0
+min_decode_ratio: 0.0
+max_decode_ratio: 10.0
+slu_beam_size: 80
+eos_threshold: 1.5
+temperature: 1.25
+
+dataloader_opts:
+  batch_size: 16
+  shuffle: true
+
+epoch_counter: &id009 !new:speechbrain.utils.epoch_loop.EpochCounter
+    # ADD
+
+  limit: 20
+
+# Models
+asr_model: !apply:speechbrain.pretrained.EncoderDecoderASR.from_hparams
+  source: speechbrain/asr-crdnn-rnnlm-librispeech
+  run_opts: {device: cpu}
+
+slu_enc: &id001 !new:speechbrain.nnet.containers.Sequential
+  input_shape: [null, null, 512]
+  lstm: !new:speechbrain.nnet.RNN.LSTM
+    input_size: 512
+    bidirectional: true
+    hidden_size: 256
+    num_layers: 2
+  linear: !new:speechbrain.nnet.linear.Linear
+    input_size: 512
+    n_neurons: 256
+
+output_emb: &id002 !new:speechbrain.nnet.embedding.Embedding
+  num_embeddings: 58
+  embedding_dim: 128
+
+dec: &id003 !new:speechbrain.nnet.RNN.AttentionalRNNDecoder
+  enc_dim: 256
+  input_size: 128
+  rnn_type: gru
+  attn_type: keyvalue
+  hidden_size: 512
+  attn_dim: 512
+  num_layers: 3
+  scaling: 1.0
+  dropout: 0.0
+
+seq_lin: &id004 !new:speechbrain.nnet.linear.Linear
+  input_size: 512
+  n_neurons: 58
+
+env_corrupt: &id005 !new:speechbrain.lobes.augment.EnvCorrupt
+
+  openrir_folder: /home/kryo/Desktop/FinalProject_TrainingLab914/datasets/slurp/audio
+  babble_prob: 0.0
+  reverb_prob: 0.0
+  noise_prob: 1.0
+  noise_snr_low: 0
+  noise_snr_high: 15
+
+modules:
+  slu_enc: *id001
+  output_emb: *id002
+  dec: *id003
+  seq_lin: *id004
+  env_corrupt: *id005
+model: &id007 !new:torch.nn.ModuleList
+- [*id001, *id002, *id003, *id004]
+tokenizer: &id006 !new:sentencepiece.SentencePieceProcessor
+
+pretrainer: !new:speechbrain.utils.parameter_transfer.Pretrainer
+  collect_in: results/better_tokenizer/1986/save/SLURM_tokenizer
+  loadables:
+    tokenizer: *id006
+  paths:
+    tokenizer: https://www.dropbox.com/s/tmwq12r5vgcsif9/58_unigram.model?dl=1
+
+beam_searcher: !new:speechbrain.decoders.S2SRNNBeamSearcher
+  embedding: *id002
+  decoder: *id003
+  linear: *id004
+  bos_index: 0
+  eos_index: 0
+  min_decode_ratio: 0.0
+  max_decode_ratio: 10.0
+  beam_size: 80
+  eos_threshold: 1.5
+  temperature: 1.25
+  using_max_attn_shift: false
+  max_attn_shift: 30
+  coverage_penalty: 0.
+
+opt_class: !name:torch.optim.Adam
+  lr: 0.0003
+
+lr_annealing: &id008 !new:speechbrain.nnet.schedulers.NewBobScheduler
+  initial_value: 0.0003
+  improvement_threshold: 0.0025
+  annealing_factor: 0.8
+  patient: 0
+
+checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
+  checkpoints_dir: results/better_tokenizer/1986/save
+  recoverables:
+    model: *id007
+    scheduler: *id008
+    counter: *id009
+augmentation: !new:speechbrain.lobes.augment.TimeDomainSpecAugment
+  sample_rate: 16000
+  speeds: [95, 100, 105]
+
+log_softmax: !new:speechbrain.nnet.activations.Softmax
+  apply_log: true
+
+seq_cost: !name:speechbrain.nnet.losses.nll_loss
+  label_smoothing: 0.1
+
+# DEFAULT:
+train_logger: !new:speechbrain.utils.train_logger.FileTrainLogger
+  save_file: results/better_tokenizer/1986/train_log.txt
+# Use TensorboardLogger instead of FileTrainLogger
+#train_logger: !new:speechbrain.utils.train_logger.TensorboardLogger
+#  save_dir: !ref <log_folder>
+
+error_rate_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
+
+cer_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
+  split_tokens: true
